@@ -1,0 +1,19 @@
+[package]
+name = "tide-compress"
+version = "0.1.0"
+authors = ["Jeremiah Senkpiel <fishrock123@rocketmail.com>"]
+edition = "2018"
+license = "BlueOak-1.0.0"
+
+# See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[dependencies]
+async-compression = { version = "0.3", features = ["futures-bufread", "gzip"] }
+async-std = { version = "1.4.0", features = ["unstable"] }
+futures = "0.3"
+http-types = "1.0"
+tide = { git = "https://github.com/Fishrock123/tide.git", branch = "response-take-body" }
+
+[dev-dependencies]
+async-std = { version = "1.4.0", features = ["unstable", "attributes"] }
+surf = "2.0.0-alpha.1"
