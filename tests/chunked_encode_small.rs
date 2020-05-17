@@ -5,6 +5,7 @@ use std::time::Duration;
 use async_std::io::Cursor;
 use async_std::prelude::*;
 use async_std::task;
+use http_types::headers::HeaderValue;
 use http_types::{headers, StatusCode};
 use tide::Response;
 
@@ -63,16 +64,15 @@ async fn chunked_large() -> Result<(), http_types::Error> {
             .set_header("Accept-Encoding".parse().unwrap(), "gzip")
             .await?;
         assert_eq!(res.status(), 200);
-        assert_eq!(
-            res.header(&"transfer-encoding".parse().unwrap()),
-            Some(&vec![http_types::headers::HeaderValue::from_ascii(
-                b"chunked"
-            )
-            .unwrap()])
-        );
-        assert_eq!(res.header(&"content-length".parse().unwrap()), None);
         let bytes = res.body_bytes().await?;
         assert_eq!(bytes.as_slice(), GZIPPED);
+        assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
+        assert_eq!(
+            res.header(&"Content-Encoding".parse().unwrap()),
+            Some(&vec![HeaderValue::from_ascii(
+                b"gzip"
+            ).unwrap()])
+        );
         Ok(())
     });
 

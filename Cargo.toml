@@ -19,7 +19,7 @@ async-compression = { version = "0.3", features = ["futures-bufread", "gzip"] }
 async-std = { version = "1.4.0", features = ["unstable"] }
 futures = "0.3"
 http-types = "1.0"
-tide = { git = "https://github.com/Fishrock123/tide.git", branch = "response-take-body" }
+tide = { git = "https://github.com/Fishrock123/tide.git", branch = "response-remove-header" }
 
 [dev-dependencies]
 async-std = { version = "1.4.0", features = ["unstable", "attributes"] }

@@ -4,7 +4,9 @@ use std::pin::Pin;
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
 use http_types::Body;
+use http_types::headers::HeaderValue;
 use tide::{Middleware, Next, Request, Response};
+use tide::http::Method;
 
 /// A middleware for compressing response body data.
 ///
@@ -26,19 +28,27 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
         next: Next<'a, State>,
     ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
         Box::pin(async move {
+            let is_head = req.method() == Method::Head;
+
             let header_value = req.header(&"Accept-Encoding".parse().unwrap()).cloned();
 
             let mut res: Response = next.run(req).await?;
 
-            if header_value.is_none() {
+            if is_head || header_value.is_none() {
                 return Ok(res)
             }
 
             let accept_encoding = header_value.unwrap();
 
-            if !accept_encoding.contains(&"gzip".parse().unwrap()) {
+            if !accept_encoding.contains(&HeaderValue::from_ascii(b"gzip").unwrap()) {
                 return Ok(res) 
             }
+
+            res.remove_header(&"Content-Length".parse().unwrap());
+
+            // XXX(Jeremiah): Using `set_header` here prevents the Body from actually being gzipped??
+
+            // let mut res = res.set_header("Content-Encoding".parse().unwrap(), "gzip");
 
             let body = res.take_body();
 
