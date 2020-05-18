@@ -64,7 +64,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 }
 
 fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Option<Encoding> {
-    let header = req.header(&"Accept-Encoding".parse().unwrap()).cloned();
+    let header = req.header(&"Accept-Encoding".parse().unwrap());
 
     if header.is_none() {
         return None;
