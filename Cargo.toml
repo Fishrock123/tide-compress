@@ -18,7 +18,7 @@ categories = [
 async-compression = { version = "0.3", features = ["futures-bufread", "gzip"] }
 async-std = { version = "1.5", features = ["unstable"] }
 futures = "0.3"
-http-types = "1.0"
+http-types = "1.2"
 tide = { git = "https://github.com/Fishrock123/tide.git", branch = "request-response-impl-asref-and-into" }
 
 [dev-dependencies]
