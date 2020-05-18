@@ -106,7 +106,8 @@ async fn gzip_compressed() -> Result<(), http_types::Error> {
             let body = Cursor::new(TEXT.to_owned());
             let res = Response::new(StatusCode::Ok)
                 .body(body)
-                .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8");
+                .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8")
+                .set_header("Content-Encoding".parse().unwrap(), "identity");
             Ok(res)
         });
         app.listen(&port).await?;

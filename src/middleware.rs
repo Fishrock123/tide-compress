@@ -8,7 +8,7 @@ use async_compression::futures::bufread::DeflateEncoder;
 #[cfg(feature = "gzip")]
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
-use http_types::headers::HeaderValue;
+use http_types::headers::{HeaderName, HeaderValue};
 use http_types::Body;
 use tide::http::Method;
 use tide::{Middleware, Next, Request, Response};
@@ -38,15 +38,27 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             // Incoming Request data
             // Need to grab these things before the request is consumed by `next.run()`.
             let is_head = req.method() == Method::Head;
-            let encoding = accepts_encoding(&req);
+            let accepts_header = accepts_encoding(&req);
 
             // Propagate to route
             let mut res: Response = next.run(req).await?;
 
-            if is_head || encoding.is_none() {
+            if is_head || accepts_header.is_none() {
                 return Ok(res);
             }
-            let encoding = encoding.unwrap();
+
+            let encoding_header: HeaderName = "Content-Encoding".parse().unwrap();
+            let previous_encoding = res.header(&encoding_header);
+
+            if previous_encoding.is_some() {
+                let previous_encoding = previous_encoding.unwrap();
+                if previous_encoding.len() > 1 || 
+                    previous_encoding.iter().any(|v| v.as_str() != "identity") {
+                    return Ok(res);
+                }
+            }
+
+            let encoding = accepts_header.unwrap();
 
             let body = res.take_body();
             let body = get_encoder(body, &encoding);
@@ -54,7 +66,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 
             res.remove_header(&"Content-Length".parse().unwrap());
             let res = res.set_header(
-                "Content-Encoding".parse().unwrap(),
+                encoding_header,
                 get_encoding_name(encoding),
             );
 
