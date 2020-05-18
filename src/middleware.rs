@@ -54,8 +54,9 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 
             if previous_encoding.is_some() {
                 let previous_encoding = previous_encoding.unwrap();
-                if previous_encoding.len() > 1 || 
-                    previous_encoding.iter().any(|v| v.as_str() != "identity") {
+                if previous_encoding.len() > 1
+                    || previous_encoding.iter().any(|v| v.as_str() != "identity")
+                {
                     return Ok(res);
                 }
             }

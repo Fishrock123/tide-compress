@@ -41,7 +41,7 @@ async fn no_accepts_encoding() -> Result<(), http_types::Error> {
 
     let client = task::spawn(async move {
         task::sleep(Duration::from_millis(100)).await;
-        
+
         let stream = TcpStream::connect(port).await?;
         let peer_addr = stream.peer_addr()?;
         let url = Url::parse(&format!("http://{}", peer_addr))?;

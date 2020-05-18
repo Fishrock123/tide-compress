@@ -10,4 +10,3 @@ pub enum Encoding {
     GZIP,
     DEFLATE,
 }
-

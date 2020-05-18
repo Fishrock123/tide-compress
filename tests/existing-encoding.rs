@@ -50,12 +50,14 @@ async fn existing_encoding() -> Result<(), http_types::Error> {
         req.insert_header("Accept-Encoding", "gzip")?;
 
         let res = client::connect(stream.clone(), req).await?;
-        
+
         assert_eq!(res.status(), 200);
         assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
         assert_eq!(
-            res.header(&"Content-Encoding".parse().unwrap()), 
-            Some(&vec!(headers::HeaderValue::from_ascii(b"some-format").unwrap()))
+            res.header(&"Content-Encoding".parse().unwrap()),
+            Some(&vec!(
+                headers::HeaderValue::from_ascii(b"some-format").unwrap()
+            ))
         );
         let str = res.body_string().await?;
         assert_eq!(str, TEXT);
@@ -85,7 +87,7 @@ async fn multi_existing_encoding() -> Result<(), http_types::Error> {
 
     let client = task::spawn(async move {
         task::sleep(Duration::from_millis(100)).await;
-        
+
         let stream = TcpStream::connect(port).await?;
         let peer_addr = stream.peer_addr()?;
         let url = Url::parse(&format!("http://{}", peer_addr))?;
@@ -97,8 +99,10 @@ async fn multi_existing_encoding() -> Result<(), http_types::Error> {
         assert_eq!(res.status(), 200);
         assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
         assert_eq!(
-            res.header(&"Content-Encoding".parse().unwrap()), 
-            Some(&vec!(headers::HeaderValue::from_ascii(b"gzip, identity").unwrap()))
+            res.header(&"Content-Encoding".parse().unwrap()),
+            Some(&vec!(
+                headers::HeaderValue::from_ascii(b"gzip, identity").unwrap()
+            ))
         );
         let str = res.body_string().await?;
         assert_eq!(str, TEXT);
