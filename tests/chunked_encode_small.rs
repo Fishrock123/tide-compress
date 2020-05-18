@@ -3,9 +3,13 @@ mod test_utils;
 use std::time::Duration;
 
 use async_std::io::Cursor;
+use async_std::net::TcpStream;
 use async_std::prelude::*;
 use async_std::task;
-use http_types::{headers, StatusCode};
+
+use async_h1::client;
+use http_types::headers::HeaderValue;
+use http_types::{headers, Method, Request, StatusCode, Url};
 use tide::Response;
 
 const TEXT: &'static str = concat![
@@ -40,7 +44,7 @@ const GZIPPED: &'static [u8] = &[
 ];
 
 #[async_std::test]
-async fn chunked_large() -> Result<(), http_types::Error> {
+async fn gzip_compressed() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
@@ -58,22 +62,27 @@ async fn chunked_large() -> Result<(), http_types::Error> {
 
     let client = task::spawn(async move {
         task::sleep(Duration::from_millis(100)).await;
-        let mut res = 
-            surf::get(format!("http://{}", port))
-            .set_header("Accept-Encoding".parse().unwrap(), "gzip")
-            .await?;
-        assert_eq!(res.status(), 200);
+
+        let stream = TcpStream::connect(port).await?;
+        let peer_addr = stream.peer_addr()?;
+        let url = Url::parse(&format!("http://{}", peer_addr))?;
+        let mut req = Request::new(Method::Get, url);
+        req.insert_header("Accept-Encoding", "gzip")?;
+
+        let mut res = client::connect(stream.clone(), req).await?;
+
+        assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
         assert_eq!(
-            res.header(&"transfer-encoding".parse().unwrap()),
-            Some(&vec![http_types::headers::HeaderValue::from_ascii(
-                b"chunked"
-            )
-            .unwrap()])
+            res.header(&"Content-Encoding".parse().unwrap()),
+            Some(&vec![HeaderValue::from_ascii(
+                b"gzip"
+            ).unwrap()])
         );
-        assert_eq!(res.header(&"content-length".parse().unwrap()), None);
-        let bytes = res.body_bytes().await?;
+        let mut bytes = Vec::with_capacity(1024);
+        res.read_to_end(&mut bytes).await?;
         assert_eq!(bytes.as_slice(), GZIPPED);
-        Ok(())
+
+        Result::<(), http_types::Error>::Ok(())
     });
 
     server.race(client).await

@@ -4,7 +4,9 @@ use std::pin::Pin;
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
 use http_types::Body;
+use http_types::headers::HeaderValue;
 use tide::{Middleware, Next, Request, Response};
+use tide::http::Method;
 
 /// A middleware for compressing response body data.
 ///
@@ -26,17 +28,19 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
         next: Next<'a, State>,
     ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
         Box::pin(async move {
+            let is_head = req.method() == Method::Head;
+
             let header_value = req.header(&"Accept-Encoding".parse().unwrap()).cloned();
 
             let mut res: Response = next.run(req).await?;
 
-            if header_value.is_none() {
+            if is_head || header_value.is_none() {
                 return Ok(res)
             }
 
             let accept_encoding = header_value.unwrap();
 
-            if !accept_encoding.contains(&"gzip".parse().unwrap()) {
+            if !accept_encoding.contains(&HeaderValue::from_ascii(b"gzip").unwrap()) {
                 return Ok(res) 
             }
 
@@ -46,7 +50,10 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             let reader = BufReader::new(encoder);
 
             let body = Body::from_reader(reader, None);
-            let res = res.body(body);
+            res.set_body(Body::from_reader(body, None));
+
+            res.remove_header(&"Content-Length".parse().unwrap());
+            let res = res.set_header("Content-Encoding".parse().unwrap(), "gzip");
 
             Ok(res)
         })
