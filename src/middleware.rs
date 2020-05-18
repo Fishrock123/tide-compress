@@ -9,11 +9,13 @@ use async_compression::futures::bufread::DeflateEncoder;
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
 use http_types::headers::{HeaderName, HeaderValue};
-use http_types::Body;
+use http_types::{headers, Body};
 use tide::http::Method;
 use tide::{Middleware, Next, Request, Response};
 
 use crate::Encoding;
+
+const THRESHOLD: usize = 1024;
 
 /// A middleware for compressing response body data.
 ///
@@ -61,14 +63,18 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             let encoding = accepts_header.unwrap();
 
             let body = res.take_body();
+
+            let body_len = body.len();
+            if body_len.is_some() && body_len.unwrap() < THRESHOLD {
+                res.set_body(body);
+                return Ok(res);
+            }
+
             let body = get_encoder(body, &encoding);
             res.set_body(Body::from_reader(body, None));
 
-            res.remove_header(&"Content-Length".parse().unwrap());
-            let res = res.set_header(
-                encoding_header,
-                get_encoding_name(encoding),
-            );
+            res.remove_header(&headers::CONTENT_LENGTH);
+            let res = res.set_header(encoding_header, get_encoding_name(encoding));
 
             Ok(res)
         })
