@@ -70,8 +70,7 @@ async fn accepts_non_gzip_encopding() -> Result<(), http_types::Error> {
 
     let client = task::spawn(async move {
         task::sleep(Duration::from_millis(100)).await;
-        let mut res = 
-            surf::get(format!("http://{}", port))
+        let mut res = surf::get(format!("http://{}", port))
             .set_header("Accept-Encoding".parse().unwrap(), "br")
             .await?;
         assert_eq!(res.status(), 200);
@@ -104,8 +103,7 @@ async fn head_request() -> Result<(), http_types::Error> {
 
     let client = task::spawn(async move {
         task::sleep(Duration::from_millis(100)).await;
-        let mut res = 
-            surf::head(format!("http://{}", port))
+        let mut res = surf::head(format!("http://{}", port))
             .set_header("Accept-Encoding".parse().unwrap(), "gzip")
             .await?;
         assert_eq!(res.status(), 200);

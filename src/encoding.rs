@@ -1,3 +1,3 @@
 pub enum Encoding {
-    GZIP
+    GZIP,
 }

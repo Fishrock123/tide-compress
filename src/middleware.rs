@@ -5,10 +5,10 @@ use async_std::io::Read;
 
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
-use http_types::Body;
 use http_types::headers::HeaderValue;
-use tide::{Middleware, Next, Request, Response};
+use http_types::Body;
 use tide::http::Method;
+use tide::{Middleware, Next, Request, Response};
 
 use crate::Encoding;
 
@@ -41,7 +41,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             let mut res: Response = next.run(req).await?;
 
             if is_head || encoding.is_none() {
-                return Ok(res)
+                return Ok(res);
             }
 
             let body = res.take_body();
@@ -60,11 +60,14 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
     }
 }
 
-
 fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Option<Encoding> {
     let header_value = req.header(&"Accept-Encoding".parse().unwrap()).cloned();
 
-    if header_value.is_some() && header_value.unwrap().contains(&HeaderValue::from_ascii(b"gzip").unwrap()) {
+    if header_value.is_some()
+        && header_value
+            .unwrap()
+            .contains(&HeaderValue::from_ascii(b"gzip").unwrap())
+    {
         return Some(Encoding::GZIP);
     } else {
         return None;
