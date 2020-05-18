@@ -16,12 +16,12 @@ categories = [
 
 [dependencies]
 async-compression = { version = "0.3", features = ["futures-bufread", "gzip"] }
-async-std = { version = "1.4.0", features = ["unstable"] }
+async-std = { version = "1.5", features = ["unstable"] }
 futures = "0.3"
 http-types = "1.0"
 tide = { git = "https://github.com/Fishrock123/tide.git", branch = "request-response-impl-asref-and-into" }
 
 [dev-dependencies]
 async-h1 = "1.1.2"
-async-std = { version = "1.4.0", features = ["unstable", "attributes"] }
+async-std = { version = "1.5", features = ["unstable", "attributes"] }
 surf = "2.0.0-alpha.1"
