@@ -52,7 +52,7 @@ async fn no_accepts_encoding() -> Result<(), http_types::Error> {
 }
 
 #[async_std::test]
-async fn accepts_non_gzip_encopding() -> Result<(), http_types::Error> {
+async fn invalid_accepts_encoding() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
@@ -71,7 +71,7 @@ async fn accepts_non_gzip_encopding() -> Result<(), http_types::Error> {
     let client = task::spawn(async move {
         task::sleep(Duration::from_millis(100)).await;
         let mut res = surf::get(format!("http://{}", port))
-            .set_header("Accept-Encoding".parse().unwrap(), "br")
+            .set_header("Accept-Encoding".parse().unwrap(), "not_an_encoding")
             .await?;
         assert_eq!(res.status(), 200);
         assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);

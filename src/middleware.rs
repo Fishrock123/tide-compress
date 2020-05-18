@@ -1,8 +1,11 @@
 use std::future::Future;
 use std::pin::Pin;
 
-use async_std::io::Read;
-
+#[cfg(any(test, feature = "brotli"))]
+use async_compression::futures::bufread::BrotliEncoder;
+#[cfg(any(test, feature = "deflate"))]
+use async_compression::futures::bufread::DeflateEncoder;
+#[cfg(any(test, feature = "gzip"))]
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
 use http_types::headers::HeaderValue;
@@ -46,14 +49,18 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 
             let body = res.take_body();
 
-            let encoder = get_encoder(body, encoding.unwrap());
+            let encoding = encoding.unwrap();
+            let encoder = get_encoder(body, &encoding);
             let reader = BufReader::new(encoder);
 
             let body = Body::from_reader(reader, None);
             res.set_body(Body::from_reader(body, None));
 
             res.remove_header(&"Content-Length".parse().unwrap());
-            let res = res.set_header("Content-Encoding".parse().unwrap(), "gzip");
+            let res = res.set_header(
+                "Content-Encoding".parse().unwrap(),
+                get_encoding_name(encoding),
+            );
 
             Ok(res)
         })
@@ -61,19 +68,68 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 }
 
 fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Option<Encoding> {
-    let header_value = req.header(&"Accept-Encoding".parse().unwrap()).cloned();
+    let header = req.header(&"Accept-Encoding".parse().unwrap()).cloned();
 
-    if header_value.is_some()
-        && header_value
-            .unwrap()
-            .contains(&HeaderValue::from_ascii(b"gzip").unwrap())
-    {
-        return Some(Encoding::GZIP);
-    } else {
+    if header.is_none() {
         return None;
     }
+
+    let header_values = header.unwrap();
+
+    #[cfg(any(test, feature = "brotli"))]
+    {
+        if header_values.contains(&HeaderValue::from_ascii(b"br").unwrap()) {
+            return Some(Encoding::BROTLI);
+        }
+    }
+
+    #[cfg(any(test, feature = "gzip"))]
+    {
+        if header_values.contains(&HeaderValue::from_ascii(b"gzip").unwrap()) {
+            return Some(Encoding::GZIP);
+        }
+    }
+
+    #[cfg(any(test, feature = "deflate"))]
+    {
+        if header_values.contains(&HeaderValue::from_ascii(b"deflate").unwrap()) {
+            return Some(Encoding::DEFLATE);
+        }
+    }
+
+    None
 }
 
-fn get_encoder(body: Body, _: Encoding) -> impl Read {
-    GzipEncoder::new(body)
+fn get_encoder(body: Body, encoding: &Encoding) -> Body {
+    #[cfg(any(test, feature = "brotli"))]
+    {
+        if *encoding == Encoding::BROTLI {
+            return Body::from_reader(BufReader::new(BrotliEncoder::new(body)), None);
+        }
+    }
+
+    #[cfg(any(test, feature = "gzip"))]
+    {
+        if *encoding == Encoding::GZIP {
+            return Body::from_reader(BufReader::new(GzipEncoder::new(body)), None);
+        }
+    }
+
+    #[cfg(any(test, feature = "deflate"))]
+    {
+        if *encoding == Encoding::DEFLATE {
+            return Body::from_reader(BufReader::new(DeflateEncoder::new(body)), None);
+        }
+    }
+
+    Body::from_reader(BufReader::new(body), None)
+}
+
+fn get_encoding_name(encoding: Encoding) -> String {
+    (match encoding {
+        Encoding::BROTLI => "br",
+        Encoding::GZIP => "gzip",
+        Encoding::DEFLATE => "deflate",
+    })
+    .to_string()
 }
