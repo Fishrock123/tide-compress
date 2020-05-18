@@ -46,14 +46,10 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             if is_head || encoding.is_none() {
                 return Ok(res);
             }
+            let encoding = encoding.unwrap();
 
             let body = res.take_body();
-
-            let encoding = encoding.unwrap();
-            let encoder = get_encoder(body, &encoding);
-            let reader = BufReader::new(encoder);
-
-            let body = Body::from_reader(reader, None);
+            let body = get_encoder(body, &encoding);
             res.set_body(Body::from_reader(body, None));
 
             res.remove_header(&"Content-Length".parse().unwrap());

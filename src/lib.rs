@@ -1,7 +1,13 @@
 //! HTTP cookies.
 
-mod encoding;
 mod middleware;
 
-pub use encoding::Encoding;
 pub use middleware::CompressMiddleware;
+
+#[derive(PartialEq)]
+pub enum Encoding {
+    BROTLI,
+    GZIP,
+    DEFLATE,
+}
+
