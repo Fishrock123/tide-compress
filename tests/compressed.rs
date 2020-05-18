@@ -134,12 +134,14 @@ async fn gzip_compressed() -> Result<(), http_types::Error> {
     server.race(client).await
 }
 
+#[cfg(feature = "deflate")]
 const DEFLATED: &'static [u8] = &[
     109, 202, 177, 9, 0, 48, 8, 5, 209, 254, 79, 225, 46, 78, 34, 68, 16, 2, 10, 193, 144, 245, 67,
     82, 89, 216, 92, 241, 56, 182, 237, 147, 194, 21, 67, 82, 232, 5, 224, 143, 121, 162, 65, 91,
     90, 223, 11,
 ];
 
+#[cfg(feature = "deflate")]
 #[async_std::test]
 async fn deflate_compressed() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;

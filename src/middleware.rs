@@ -1,11 +1,11 @@
 use std::future::Future;
 use std::pin::Pin;
 
-#[cfg(any(test, feature = "brotli"))]
+#[cfg(feature = "brotli")]
 use async_compression::futures::bufread::BrotliEncoder;
-#[cfg(any(test, feature = "deflate"))]
+#[cfg(feature = "deflate")]
 use async_compression::futures::bufread::DeflateEncoder;
-#[cfg(any(test, feature = "gzip"))]
+#[cfg(feature = "gzip")]
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
 use http_types::headers::HeaderValue;
@@ -72,21 +72,21 @@ fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Optio
 
     let header_values = header.unwrap();
 
-    #[cfg(any(test, feature = "brotli"))]
+    #[cfg(feature = "brotli")]
     {
         if header_values.contains(&HeaderValue::from_ascii(b"br").unwrap()) {
             return Some(Encoding::BROTLI);
         }
     }
 
-    #[cfg(any(test, feature = "gzip"))]
+    #[cfg(feature = "gzip")]
     {
         if header_values.contains(&HeaderValue::from_ascii(b"gzip").unwrap()) {
             return Some(Encoding::GZIP);
         }
     }
 
-    #[cfg(any(test, feature = "deflate"))]
+    #[cfg(feature = "deflate")]
     {
         if header_values.contains(&HeaderValue::from_ascii(b"deflate").unwrap()) {
             return Some(Encoding::DEFLATE);
@@ -97,21 +97,21 @@ fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Optio
 }
 
 fn get_encoder(body: Body, encoding: &Encoding) -> Body {
-    #[cfg(any(test, feature = "brotli"))]
+    #[cfg(feature = "brotli")]
     {
         if *encoding == Encoding::BROTLI {
             return Body::from_reader(BufReader::new(BrotliEncoder::new(body)), None);
         }
     }
 
-    #[cfg(any(test, feature = "gzip"))]
+    #[cfg(feature = "gzip")]
     {
         if *encoding == Encoding::GZIP {
             return Body::from_reader(BufReader::new(GzipEncoder::new(body)), None);
         }
     }
 
-    #[cfg(any(test, feature = "deflate"))]
+    #[cfg(feature = "deflate")]
     {
         if *encoding == Encoding::DEFLATE {
             return Body::from_reader(BufReader::new(DeflateEncoder::new(body)), None);
