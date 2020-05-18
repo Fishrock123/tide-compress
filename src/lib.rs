@@ -1,5 +1,7 @@
 //! HTTP cookies.
 
+mod encoding;
 mod middleware;
 
-pub use middleware::{CompressMiddleware};
+pub use encoding::Encoding;
+pub use middleware::CompressMiddleware;

@@ -1,12 +1,16 @@
 use std::future::Future;
 use std::pin::Pin;
 
+use async_std::io::Read;
+
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
 use http_types::Body;
 use http_types::headers::HeaderValue;
 use tide::{Middleware, Next, Request, Response};
 use tide::http::Method;
+
+use crate::Encoding;
 
 /// A middleware for compressing response body data.
 ///
@@ -28,25 +32,21 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
         next: Next<'a, State>,
     ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
         Box::pin(async move {
+            // Incoming Request data
+            // Need to grab these things before the request is consumed by `next.run()`.
             let is_head = req.method() == Method::Head;
+            let encoding = accepts_encoding(&req);
 
-            let header_value = req.header(&"Accept-Encoding".parse().unwrap()).cloned();
-
+            // Propagate to route
             let mut res: Response = next.run(req).await?;
 
-            if is_head || header_value.is_none() {
+            if is_head || encoding.is_none() {
                 return Ok(res)
-            }
-
-            let accept_encoding = header_value.unwrap();
-
-            if !accept_encoding.contains(&HeaderValue::from_ascii(b"gzip").unwrap()) {
-                return Ok(res) 
             }
 
             let body = res.take_body();
 
-            let encoder = GzipEncoder::new(body);
+            let encoder = get_encoder(body, encoding.unwrap());
             let reader = BufReader::new(encoder);
 
             let body = Body::from_reader(reader, None);
@@ -58,4 +58,19 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             Ok(res)
         })
     }
+}
+
+
+fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Option<Encoding> {
+    let header_value = req.header(&"Accept-Encoding".parse().unwrap()).cloned();
+
+    if header_value.is_some() && header_value.unwrap().contains(&HeaderValue::from_ascii(b"gzip").unwrap()) {
+        return Some(Encoding::GZIP);
+    } else {
+        return None;
+    }
+}
+
+fn get_encoder(body: Body, _: Encoding) -> impl Read {
+    GzipEncoder::new(body)
 }
