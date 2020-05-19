@@ -26,9 +26,9 @@ deflate = ["async-compression/deflate"]
 async-compression = { version = "0.3", features = ["futures-bufread"] }
 async-std = { version = "1.5", features = ["unstable"] }
 futures = "0.3"
-http-types = "1.2"
-tide = { git = "https://github.com/http-rs/tide.git" }
+http-types = { git = "https://github.com/http-rs/http-types.git", branch = "master" }
+tide = { git = "https://github.com/jbr/tide.git", branch = "update-http-types" }
 
 [dev-dependencies]
-async-h1 = "1.1.2"
+async-h1 = { git = "https://github.com/jbr/async-h1.git", branch = "update-http-types" }
 async-std = { version = "1.5", features = ["unstable", "attributes"] }

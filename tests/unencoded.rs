@@ -49,8 +49,8 @@ async fn no_accepts_encoding() -> Result<(), http_types::Error> {
         let res = client::connect(stream.clone(), req).await?;
 
         assert_eq!(res.status(), 200);
-        assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
-        assert_eq!(res.header(&"Content-Encoding".parse().unwrap()), None);
+        assert!(res.header(headers::CONTENT_LENGTH).is_none());
+        assert!(res.header(headers::CONTENT_ENCODING).is_none());
         let str = res.body_string().await?;
         assert_eq!(str, TEXT);
         Ok(())
@@ -83,13 +83,13 @@ async fn invalid_accepts_encoding() -> Result<(), http_types::Error> {
         let peer_addr = stream.peer_addr()?;
         let url = Url::parse(&format!("http://{}", peer_addr))?;
         let mut req = Request::new(Method::Get, url);
-        req.insert_header("Accept-Encoding", "not_an_encoding")?;
+        req.insert_header(headers::ACCEPT_ENCODING, "not_an_encoding");
 
         let res = client::connect(stream.clone(), req).await?;
 
         assert_eq!(res.status(), 200);
-        assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
-        assert_eq!(res.header(&"Content-Encoding".parse().unwrap()), None);
+        assert!(res.header(headers::CONTENT_LENGTH).is_none());
+        assert!(res.header(headers::CONTENT_ENCODING).is_none());
         let str = res.body_string().await?;
         assert_eq!(str, TEXT);
         Ok(())
@@ -122,13 +122,13 @@ async fn head_request() -> Result<(), http_types::Error> {
         let peer_addr = stream.peer_addr()?;
         let url = Url::parse(&format!("http://{}", peer_addr))?;
         let mut req = Request::new(Method::Head, url);
-        req.insert_header("Accept-Encoding", "gzip")?;
+        req.insert_header(headers::ACCEPT_ENCODING, "gzip");
 
         let res = client::connect(stream.clone(), req).await?;
 
         assert_eq!(res.status(), 200);
-        assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
-        assert_eq!(res.header(&"Content-Encoding".parse().unwrap()), None);
+        assert!(res.header(headers::CONTENT_LENGTH).is_none());
+        assert!(res.header(headers::CONTENT_ENCODING).is_none());
         // XXX(Jeremiah): seems like async-h1 or tide may mishandle HEAD requests.
         // HEAD requests should never have a body.
         //
@@ -163,17 +163,15 @@ async fn below_threshold_request() -> Result<(), http_types::Error> {
         let peer_addr = stream.peer_addr()?;
         let url = Url::parse(&format!("http://{}", peer_addr))?;
         let mut req = Request::new(Method::Get, url);
-        req.insert_header("Accept-Encoding", "gzip")?;
+        req.insert_header(headers::ACCEPT_ENCODING, "gzip");
 
         let res = client::connect(stream.clone(), req).await?;
 
         assert_eq!(res.status(), 200);
-        assert_eq!(res.header(&"Transfer-Encoding".parse().unwrap()), None);
-        assert_eq!(
-            res.header(&"Content-Length".parse().unwrap()),
-            Some(&vec![headers::HeaderValue::from_ascii(b"64").unwrap()])
-        );
-        assert_eq!(res.header(&"Content-Encoding".parse().unwrap()), None);
+        assert!(res.header(headers::TRANSFER_ENCODING).is_none());
+        assert!(res.header(headers::CONTENT_LENGTH).is_none());
+        assert_eq!(res[headers::CONTENT_LENGTH], "64");
+        assert!(res.header(headers::CONTENT_ENCODING).is_none());
         let str = res.body_string().await?;
         assert_eq!(str, TEXT);
         Ok(())

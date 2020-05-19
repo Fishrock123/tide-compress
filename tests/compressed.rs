@@ -7,7 +7,6 @@ use async_std::prelude::*;
 use async_std::task;
 
 use async_h1::client;
-use http_types::headers::HeaderValue;
 use http_types::{headers, Method, Request, StatusCode, Url};
 use tide::Response;
 
@@ -51,15 +50,12 @@ async fn brotli_compressed() -> Result<(), http_types::Error> {
         let peer_addr = stream.peer_addr()?;
         let url = Url::parse(&format!("http://{}", peer_addr))?;
         let mut req = Request::new(Method::Get, url);
-        req.insert_header("Accept-Encoding", "br")?;
+        req.insert_header(headers::ACCEPT_ENCODING, "br");
 
         let mut res = client::connect(stream.clone(), req).await?;
 
-        assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
-        assert_eq!(
-            res.header(&"Content-Encoding".parse().unwrap()),
-            Some(&vec![HeaderValue::from_ascii(b"br").unwrap()])
-        );
+        assert!(res.header(headers::CONTENT_LENGTH).is_none());
+        assert_eq!(res[headers::CONTENT_ENCODING], "br");
         let mut bytes = Vec::with_capacity(1024);
         res.read_to_end(&mut bytes).await?;
         assert_eq!(bytes.as_slice(), BR_COMPRESSED);
@@ -105,7 +101,7 @@ async fn gzip_compressed() -> Result<(), http_types::Error> {
             let res = Response::new(StatusCode::Ok)
                 .body_string(TEXT.to_owned())
                 .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8")
-                .set_header("Content-Encoding".parse().unwrap(), "identity");
+                .set_header(headers::CONTENT_ENCODING, "identity");
             Ok(res)
         });
         app.listen(&port).await?;
@@ -119,15 +115,12 @@ async fn gzip_compressed() -> Result<(), http_types::Error> {
         let peer_addr = stream.peer_addr()?;
         let url = Url::parse(&format!("http://{}", peer_addr))?;
         let mut req = Request::new(Method::Get, url);
-        req.insert_header("Accept-Encoding", "gzip")?;
+        req.insert_header(headers::ACCEPT_ENCODING, "gzip");
 
         let mut res = client::connect(stream.clone(), req).await?;
 
-        assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
-        assert_eq!(
-            res.header(&"Content-Encoding".parse().unwrap()),
-            Some(&vec![HeaderValue::from_ascii(b"gzip").unwrap()])
-        );
+        assert!(res.header(headers::CONTENT_LENGTH).is_none());
+        assert_eq!(res[headers::CONTENT_ENCODING], "gzip");
         let mut bytes = Vec::with_capacity(1024);
         res.read_to_end(&mut bytes).await?;
         assert_eq!(bytes.as_slice(), GZIPPED);
@@ -169,15 +162,12 @@ async fn deflate_compressed() -> Result<(), http_types::Error> {
         let peer_addr = stream.peer_addr()?;
         let url = Url::parse(&format!("http://{}", peer_addr))?;
         let mut req = Request::new(Method::Get, url);
-        req.insert_header("Accept-Encoding", "deflate")?;
+        req.insert_header(headers::ACCEPT_ENCODING, "deflate");
 
         let mut res = client::connect(stream.clone(), req).await?;
 
-        assert_eq!(res.header(&"Content-Length".parse().unwrap()), None);
-        assert_eq!(
-            res.header(&"Content-Encoding".parse().unwrap()),
-            Some(&vec![HeaderValue::from_ascii(b"deflate").unwrap()])
-        );
+        assert!(res.header(headers::CONTENT_LENGTH).is_none());
+        assert_eq!(res[headers::CONTENT_ENCODING], "deflate");
         let mut bytes = Vec::with_capacity(1024);
         res.read_to_end(&mut bytes).await?;
         assert_eq!(bytes.as_slice(), DEFLATED);
