@@ -1,12 +1,3 @@
-mod test_utils;
-
-use std::time::Duration;
-
-use async_std::net::TcpStream;
-use async_std::prelude::*;
-use async_std::task;
-
-use async_h1::client;
 use http_types::{headers, Method, Request, StatusCode, Url};
 use tide::Response;
 
@@ -28,42 +19,21 @@ const BR_COMPRESSED: &'static [u8] = &[
 ];
 
 #[async_std::test]
-async fn brotli_compressed() -> Result<(), http_types::Error> {
-    let port = test_utils::find_port().await;
-    let server = task::spawn(async move {
-        let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
-        app.at("/").get(|mut _req: tide::Request<()>| async move {
-            let res = Response::new(StatusCode::Ok)
-                .body_string(TEXT.to_owned())
-                .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8");
-            Ok(res)
-        });
-        app.listen(&port).await?;
-        Result::<(), http_types::Error>::Ok(())
+async fn brotli_compressed() {
+    let mut app = tide::new();
+    app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
+    app.at("/").get(|_| async {
+        let res = Response::new(StatusCode::Ok)
+            .body_string(TEXT.to_owned())
+            .set_mime("text/plain; charset=utf-8".parse().unwrap());
+        Ok(res)
     });
-
-    let client = task::spawn(async move {
-        task::sleep(Duration::from_millis(100)).await;
-
-        let stream = TcpStream::connect(port).await?;
-        let peer_addr = stream.peer_addr()?;
-        let url = Url::parse(&format!("http://{}", peer_addr))?;
-        let mut req = Request::new(Method::Get, url);
-        req.insert_header(headers::ACCEPT_ENCODING, "br");
-
-        let mut res = client::connect(stream.clone(), req).await?;
-
-        assert!(res.header(headers::CONTENT_LENGTH).is_none());
-        assert_eq!(res[headers::CONTENT_ENCODING], "br");
-        let mut bytes = Vec::with_capacity(1024);
-        res.read_to_end(&mut bytes).await?;
-        assert_eq!(bytes.as_slice(), BR_COMPRESSED);
-
-        Result::<(), http_types::Error>::Ok(())
-    });
-
-    server.race(client).await
+    let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
+    req.insert_header(headers::ACCEPT_ENCODING, "br");
+    let res: http_types::Response = app.respond(req).await.unwrap();
+    assert!(res.header(headers::CONTENT_LENGTH).is_none());
+    assert_eq!(res[headers::CONTENT_ENCODING], "br");
+    assert_eq!(res.body_bytes().await.unwrap(), BR_COMPRESSED);
 }
 
 const GZIPPED: &'static [u8] = &[
@@ -92,43 +62,24 @@ const GZIPPED: &'static [u8] = &[
 ];
 
 #[async_std::test]
-async fn gzip_compressed() -> Result<(), http_types::Error> {
-    let port = test_utils::find_port().await;
-    let server = task::spawn(async move {
-        let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
-        app.at("/").get(|mut _req: tide::Request<()>| async move {
-            let res = Response::new(StatusCode::Ok)
-                .body_string(TEXT.to_owned())
-                .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8")
-                .set_header(headers::CONTENT_ENCODING, "identity");
-            Ok(res)
-        });
-        app.listen(&port).await?;
-        Result::<(), http_types::Error>::Ok(())
+async fn gzip_compressed() {
+    let mut app = tide::new();
+    app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
+    app.at("/").get(|_| async move {
+        let res = Response::new(StatusCode::Ok)
+            .body_string(TEXT.to_owned())
+            .set_mime("text/plain; charset=utf-8".parse().unwrap())
+            .set_header(headers::CONTENT_ENCODING, "identity");
+        Ok(res)
     });
 
-    let client = task::spawn(async move {
-        task::sleep(Duration::from_millis(100)).await;
+    let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
+    req.insert_header(headers::ACCEPT_ENCODING, "gzip");
+    let res: http_types::Response = app.respond(req).await.unwrap();
 
-        let stream = TcpStream::connect(port).await?;
-        let peer_addr = stream.peer_addr()?;
-        let url = Url::parse(&format!("http://{}", peer_addr))?;
-        let mut req = Request::new(Method::Get, url);
-        req.insert_header(headers::ACCEPT_ENCODING, "gzip");
-
-        let mut res = client::connect(stream.clone(), req).await?;
-
-        assert!(res.header(headers::CONTENT_LENGTH).is_none());
-        assert_eq!(res[headers::CONTENT_ENCODING], "gzip");
-        let mut bytes = Vec::with_capacity(1024);
-        res.read_to_end(&mut bytes).await?;
-        assert_eq!(bytes.as_slice(), GZIPPED);
-
-        Result::<(), http_types::Error>::Ok(())
-    });
-
-    server.race(client).await
+    assert!(res.header(headers::CONTENT_LENGTH).is_none());
+    assert_eq!(res[headers::CONTENT_ENCODING], "gzip");
+    assert_eq!(res.body_bytes().await.unwrap(), GZIPPED);
 }
 
 #[cfg(feature = "deflate")]
@@ -140,40 +91,19 @@ const DEFLATED: &'static [u8] = &[
 
 #[cfg(feature = "deflate")]
 #[async_std::test]
-async fn deflate_compressed() -> Result<(), http_types::Error> {
-    let port = test_utils::find_port().await;
-    let server = task::spawn(async move {
-        let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
-        app.at("/").get(|mut _req: tide::Request<()>| async move {
-            let res = Response::new(StatusCode::Ok)
-                .body_string(TEXT.to_owned())
-                .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8");
-            Ok(res)
-        });
-        app.listen(&port).await?;
-        Result::<(), http_types::Error>::Ok(())
+async fn deflate_compressed() {
+    let mut app = tide::new();
+    app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
+    app.at("/").get(|_| async {
+        let res = Response::new(StatusCode::Ok)
+            .body_string(TEXT.to_owned())
+            .set_mime("text/plain; charset=utf-8".parse().unwrap());
+        Ok(res)
     });
-
-    let client = task::spawn(async move {
-        task::sleep(Duration::from_millis(100)).await;
-
-        let stream = TcpStream::connect(port).await?;
-        let peer_addr = stream.peer_addr()?;
-        let url = Url::parse(&format!("http://{}", peer_addr))?;
-        let mut req = Request::new(Method::Get, url);
-        req.insert_header(headers::ACCEPT_ENCODING, "deflate");
-
-        let mut res = client::connect(stream.clone(), req).await?;
-
-        assert!(res.header(headers::CONTENT_LENGTH).is_none());
-        assert_eq!(res[headers::CONTENT_ENCODING], "deflate");
-        let mut bytes = Vec::with_capacity(1024);
-        res.read_to_end(&mut bytes).await?;
-        assert_eq!(bytes.as_slice(), DEFLATED);
-
-        Result::<(), http_types::Error>::Ok(())
-    });
-
-    server.race(client).await
+    let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
+    req.insert_header(headers::ACCEPT_ENCODING, "deflate");
+    let res: http_types::Response = app.respond(req).await.unwrap();
+    assert!(res.header(headers::CONTENT_LENGTH).is_none());
+    assert_eq!(res[headers::CONTENT_ENCODING], "deflate");
+    assert_eq!(res.body_bytes().await.unwrap(), DEFLATED);
 }
