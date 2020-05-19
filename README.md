@@ -20,7 +20,7 @@ async fn main() -> Result<(), std::io::Error> {
 
 ## Caveats
 
-Does not do any `Accept-Enconding` priority handling.
+Does not do any `Accept-Encoding` priority handling.
 
 ## License
 
