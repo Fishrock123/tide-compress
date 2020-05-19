@@ -137,7 +137,7 @@ fn get_encoder(body: Body, encoding: &Encoding) -> Body {
         }
     }
 
-    Body::from_reader(BufReader::new(body), None)
+    body
 }
 
 fn get_encoding_name(encoding: Encoding) -> String {
