@@ -27,7 +27,7 @@ async fn no_accepts_encoding() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware);
+        app.middleware(tide_compress::CompressMiddleware::new());
         app.at("/").get(|mut _req: tide::Request<()>| async move {
             let body = Cursor::new(TEXT.to_owned());
             let res = Response::new(StatusCode::Ok)
@@ -64,7 +64,7 @@ async fn invalid_accepts_encoding() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware);
+        app.middleware(tide_compress::CompressMiddleware::new());
         app.at("/").get(|mut _req: tide::Request<()>| async move {
             let body = Cursor::new(TEXT.to_owned());
             let res = Response::new(StatusCode::Ok)
@@ -103,7 +103,7 @@ async fn head_request() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware);
+        app.middleware(tide_compress::CompressMiddleware::new());
         app.at("/").get(|mut _req: tide::Request<()>| async move {
             let body = Cursor::new(TEXT.to_owned());
             let res = Response::new(StatusCode::Ok)
@@ -145,7 +145,7 @@ async fn below_threshold_request() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware);
+        app.middleware(tide_compress::CompressMiddleware::new());
         app.at("/").get(|mut _req: tide::Request<()>| async move {
             let res = Response::new(StatusCode::Ok)
                 .body_string(TEXT.to_owned())

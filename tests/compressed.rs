@@ -2,7 +2,6 @@ mod test_utils;
 
 use std::time::Duration;
 
-use async_std::io::Cursor;
 use async_std::net::TcpStream;
 use async_std::prelude::*;
 use async_std::task;
@@ -34,11 +33,10 @@ async fn brotli_compressed() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware);
+        app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
         app.at("/").get(|mut _req: tide::Request<()>| async move {
-            let body = Cursor::new(TEXT.to_owned());
             let res = Response::new(StatusCode::Ok)
-                .body(body)
+                .body_string(TEXT.to_owned())
                 .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8");
             Ok(res)
         });
@@ -102,11 +100,10 @@ async fn gzip_compressed() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware);
+        app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
         app.at("/").get(|mut _req: tide::Request<()>| async move {
-            let body = Cursor::new(TEXT.to_owned());
             let res = Response::new(StatusCode::Ok)
-                .body(body)
+                .body_string(TEXT.to_owned())
                 .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8")
                 .set_header("Content-Encoding".parse().unwrap(), "identity");
             Ok(res)
@@ -154,11 +151,10 @@ async fn deflate_compressed() -> Result<(), http_types::Error> {
     let port = test_utils::find_port().await;
     let server = task::spawn(async move {
         let mut app = tide::new();
-        app.middleware(tide_compress::CompressMiddleware);
+        app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
         app.at("/").get(|mut _req: tide::Request<()>| async move {
-            let body = Cursor::new(TEXT.to_owned());
             let res = Response::new(StatusCode::Ok)
-                .body(body)
+                .body_string(TEXT.to_owned())
                 .set_header(headers::CONTENT_TYPE, "text/plain; charset=utf-8");
             Ok(res)
         });
