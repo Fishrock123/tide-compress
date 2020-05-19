@@ -2,7 +2,23 @@
 
 Outgoing compression middleware for the [Tide][] web framework.
 
-Presently only supports gzip, if the `Accept-Enconding` request header contains it.
+```rust
+#[async_std::main]
+async fn main() -> Result<(), std::io::Error> {
+    let mut app = tide::new();
+    app.middleware(tide_compress::CompressMiddleware);
+}
+```
+
+## Features
+
+- Support for Brotli, Gzip, and Deflate encodings, compile-time configurable through cargo feature flags.
+  - Only pulls in the necessary dependencies for the desired configuration
+  - Defaults to Brotli + Gzip.
+- `Accept-Encoding` checking.
+- Minimum body size threshold. (Currently hardcoded to 1024 bytes.)
+
+## Caveats
 
 Does not do any `Accept-Enconding` priority handling.
 
