@@ -42,7 +42,8 @@ async fn multi_existing_encoding() {
         let res = Response::new(StatusCode::Ok)
             .body_string(TEXT.to_owned())
             .set_mime("text/plain; charset=utf-8".parse().unwrap())
-            .set_header(headers::CONTENT_ENCODING, "gzip, identity");
+            .append_header(headers::CONTENT_ENCODING, "gzip")
+            .append_header(headers::CONTENT_ENCODING, "identity");
         Ok(res)
     });
 
@@ -52,6 +53,7 @@ async fn multi_existing_encoding() {
 
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
-    assert_eq!(res[headers::CONTENT_ENCODING], "gzip, identity");
+    assert_eq!(res[headers::CONTENT_ENCODING][0].as_str(), "gzip");
+    assert_eq!(res[headers::CONTENT_ENCODING][1].as_str(), "identity");
     assert_eq!(res.body_string().await.unwrap(), TEXT);
 }
