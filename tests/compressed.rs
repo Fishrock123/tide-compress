@@ -28,9 +28,12 @@ async fn brotli_compressed() {
             .set_mime("text/plain; charset=utf-8".parse().unwrap());
         Ok(res)
     });
+
     let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "br");
     let res: http_types::Response = app.respond(req).await.unwrap();
+
+    assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert_eq!(res[headers::CONTENT_ENCODING], "br");
     assert_eq!(res.body_bytes().await.unwrap(), BR_COMPRESSED);
@@ -77,6 +80,7 @@ async fn gzip_compressed() {
     req.insert_header(headers::ACCEPT_ENCODING, "gzip");
     let res: http_types::Response = app.respond(req).await.unwrap();
 
+    assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert_eq!(res[headers::CONTENT_ENCODING], "gzip");
     assert_eq!(res.body_bytes().await.unwrap(), GZIPPED);
@@ -100,9 +104,12 @@ async fn deflate_compressed() {
             .set_mime("text/plain; charset=utf-8".parse().unwrap());
         Ok(res)
     });
+
     let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "deflate");
     let res: http_types::Response = app.respond(req).await.unwrap();
+
+    assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert_eq!(res[headers::CONTENT_ENCODING], "deflate");
     assert_eq!(res.body_bytes().await.unwrap(), DEFLATED);
