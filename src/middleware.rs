@@ -61,14 +61,14 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             // Incoming Request data
             // Need to grab these things before the request is consumed by `next.run()`.
             let is_head = req.method() == Method::Head;
-            let accepts_header = accepts_encoding(&req);
+            let accepts_encoding = accepts_encoding(&req);
 
             // Propagate to route
             let mut res: Response = next.run(req).await?;
 
-            // Head requests should have no body.
+            // Head requests should have no body to compress.
             // Can't tell if we can compress if there is no Accepts-Encoding header.
-            if is_head || accepts_header.is_none() {
+            if is_head || accepts_encoding.is_none() {
                 return Ok(res);
             }
 
@@ -85,8 +85,6 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
                 }
             }
 
-            let encoding = accepts_header.unwrap();
-
             let body = res.take_body();
 
             // Check body length against threshold.
@@ -96,12 +94,14 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
                 return Ok(res);
             }
 
-            let body = get_encoder(body, &encoding);
-            res.set_body(Body::from_reader(body, None));
+            let encoding = accepts_encoding.unwrap();
+
+            // Get a new Body backed by an appropriate encoder, if one is available.
+            res.set_body(get_encoder(body, &encoding));
+            let mut res = res.set_header(encoding_header, get_encoding_name(&encoding));
 
             // End size no longer matches body size, so Content-Length is useless.
             res.remove_header(&headers::CONTENT_LENGTH);
-            let res = res.set_header(encoding_header, get_encoding_name(encoding));
 
             Ok(res)
         })
@@ -169,8 +169,8 @@ fn get_encoder(body: Body, encoding: &Encoding) -> Body {
 }
 
 /// Maps an `Encoding` to a Content-Encoding string.
-fn get_encoding_name(encoding: Encoding) -> String {
-    (match encoding {
+fn get_encoding_name(encoding: &Encoding) -> String {
+    (match *encoding {
         Encoding::BROTLI => "br",
         Encoding::GZIP => "gzip",
         Encoding::DEFLATE => "deflate",
