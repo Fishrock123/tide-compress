@@ -8,7 +8,6 @@ use async_compression::futures::bufread::DeflateEncoder;
 #[cfg(feature = "gzip")]
 use async_compression::futures::bufread::GzipEncoder;
 use futures_util::io::BufReader;
-use http_types::headers::HeaderName;
 use http_types::{headers, Body};
 use tide::http::Method;
 use tide::{Middleware, Next, Request, Response};
@@ -72,13 +71,8 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 
             // Check if an encoding may already exist.
             // Can't tell if we should compress if an encoding set.
-            let encoding_header: HeaderName = "Content-Encoding".parse().unwrap();
-            let previous_encoding = res.header(&encoding_header);
-            if previous_encoding.is_some() {
-                let previous_encoding = previous_encoding.unwrap();
-                if previous_encoding.iter().count() > 1
-                    || previous_encoding.iter().any(|v| v.as_str() != "identity")
-                {
+            if let Some(previous_encoding) = res.header(headers::CONTENT_ENCODING) {
+                if previous_encoding.iter().any(|v| v.as_str() != "identity") {
                     return Ok(res);
                 }
             }
@@ -86,20 +80,21 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             let body = res.take_body();
 
             // Check body length against threshold.
-            let body_len = body.len();
-            if body_len.is_some() && body_len.unwrap() < self.threshold {
-                res.set_body(body);
-                return Ok(res);
+            if let Some(body_len) = body.len() {
+                if body_len < self.threshold {
+                    res.set_body(body);
+                    return Ok(res);
+                }
             }
 
             let encoding = accepts_encoding.unwrap();
 
             // Get a new Body backed by an appropriate encoder, if one is available.
             res.set_body(get_encoder(body, &encoding));
-            let mut res = res.set_header(encoding_header, get_encoding_name(&encoding));
+            let mut res = res.set_header(headers::CONTENT_ENCODING, get_encoding_name(&encoding));
 
-            // End size no longer matches body size, so Content-Length is useless.
-            res.remove_header(&headers::CONTENT_LENGTH);
+            // End size no longer matches body size, so any existing Content-Length is useless.
+            res.remove_header(headers::CONTENT_LENGTH);
 
             Ok(res)
         })
