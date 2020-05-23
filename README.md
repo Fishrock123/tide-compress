@@ -14,7 +14,7 @@ async fn main() -> Result<(), std::io::Error> {
 
 - Support for Brotli, Gzip, and Deflate encodings, compile-time configurable through cargo feature flags.
   - Prioritizes Brotli if available.
-  - Only pulls in the necessary dependencies for the desired configuration
+  - Only pulls in the necessary dependencies for the desired configuration.
   - Defaults to Brotli + Gzip.
 - `Accept-Encoding` checking.
 - Minimum body size threshold.
@@ -22,7 +22,9 @@ async fn main() -> Result<(), std::io::Error> {
 
 ## Caveats
 
-Does not do any `Accept-Encoding` priority handling.
+- Does not do any `Accept-Encoding` priority handling.
+- Does not do any `Content-Type` / MIME checking.
+- Does not handle `Cache-Control` or `Vary` headers.
 
 ## License
 
