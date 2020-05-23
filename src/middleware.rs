@@ -18,8 +18,6 @@ use crate::Encoding;
 const THRESHOLD: usize = 1024;
 
 /// A middleware for compressing response body data.
-///
-/// Currently, it compresses unconditionally, and only with gzip.
 #[derive(Debug, Clone)]
 pub struct CompressMiddleware {
     threshold: usize,
