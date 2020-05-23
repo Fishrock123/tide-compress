@@ -8,7 +8,7 @@ use async_compression::futures::bufread::DeflateEncoder;
 #[cfg(feature = "gzip")]
 use async_compression::futures::bufread::GzipEncoder;
 use futures::io::BufReader;
-use http_types::headers::{HeaderName, HeaderValue};
+use http_types::headers::HeaderName;
 use http_types::{headers, Body};
 use tide::http::Method;
 use tide::{Middleware, Next, Request, Response};
@@ -78,7 +78,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             let previous_encoding = res.header(&encoding_header);
             if previous_encoding.is_some() {
                 let previous_encoding = previous_encoding.unwrap();
-                if previous_encoding.len() > 1
+                if previous_encoding.iter().count() > 1
                     || previous_encoding.iter().any(|v| v.as_str() != "identity")
                 {
                     return Ok(res);
@@ -110,7 +110,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 
 /// Gets an `Encoding` that matches up to the Accept-Encoding value.
 fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Option<Encoding> {
-    let header = req.header(&"Accept-Encoding".parse().unwrap());
+    let header = req.header(headers::ACCEPT_ENCODING);
 
     if header.is_none() {
         return None;
@@ -120,21 +120,21 @@ fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Optio
 
     #[cfg(feature = "brotli")]
     {
-        if header_values.contains(&HeaderValue::from_ascii(b"br").unwrap()) {
+        if header_values.iter().any(|v| v.as_str() == "br") {
             return Some(Encoding::BROTLI);
         }
     }
 
     #[cfg(feature = "gzip")]
     {
-        if header_values.contains(&HeaderValue::from_ascii(b"gzip").unwrap()) {
+        if header_values.iter().any(|v| v.as_str() == "gzip") {
             return Some(Encoding::GZIP);
         }
     }
 
     #[cfg(feature = "deflate")]
     {
-        if header_values.contains(&HeaderValue::from_ascii(b"deflate").unwrap()) {
+        if header_values.iter().any(|v| v.as_str() == "deflate") {
             return Some(Encoding::DEFLATE);
         }
     }
