@@ -6,17 +6,19 @@ Outgoing compression middleware for the [Tide][] web framework.
 #[async_std::main]
 async fn main() -> Result<(), std::io::Error> {
     let mut app = tide::new();
-    app.middleware(tide_compress::CompressMiddleware);
+    app.middleware(tide_compress::CompressMiddleware::new());
 }
 ```
 
 ## Features
 
 - Support for Brotli, Gzip, and Deflate encodings, compile-time configurable through cargo feature flags.
+  - Prioritizes Brotli if available.
   - Only pulls in the necessary dependencies for the desired configuration
   - Defaults to Brotli + Gzip.
 - `Accept-Encoding` checking.
-- Minimum body size threshold. (Currently hardcoded to 1024 bytes.)
+- Minimum body size threshold.
+  - Configurable when created by `CompressMiddleware::with_threshold(usize)`.
 
 ## Caveats
 
