@@ -1,4 +1,4 @@
-//! HTTP cookies.
+//! Outgoing HTTP body compression middleware for Tide.
 
 mod middleware;
 
