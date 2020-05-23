@@ -24,11 +24,11 @@ deflate = ["async-compression/deflate"]
 
 [dependencies]
 async-compression = { version = "0.3", features = ["futures-bufread"] }
-async-std = { version = "1.5", features = ["unstable"] }
+async-std = { version = "1.6", features = ["unstable"] }
 futures = "0.3"
 http-types = "2.0"
 tide = "0.9"
 
 [dev-dependencies]
-async-std = { version = "1.5", features = ["unstable", "attributes"] }
 async-h1 = "2.0"
+async-std = { version = "1.6", features = ["unstable", "attributes"] }
