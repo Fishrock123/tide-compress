@@ -100,3 +100,25 @@ async fn below_threshold_request() {
     assert!(res.header(headers::CONTENT_ENCODING).is_none());
     assert_eq!(res.body_string().await.unwrap(), TEXT);
 }
+
+#[async_std::test]
+async fn cache_control() {
+    let mut app = tide::new();
+    app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
+    app.at("/").get(|_| async {
+        let res = Response::new(StatusCode::Ok)
+            .body_string(TEXT.to_owned())
+            .set_mime("text/plain; charset=utf-8".parse().unwrap())
+            .set_header(headers::CACHE_CONTROL, "no-transform");
+        Ok(res)
+    });
+
+    let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
+    req.insert_header(headers::ACCEPT_ENCODING, "gzip");
+    let res: http_types::Response = app.respond(req).await.unwrap();
+
+    assert_eq!(res.status(), 200);
+    assert!(res.header(headers::TRANSFER_ENCODING).is_none());
+    assert!(res.header(headers::CONTENT_ENCODING).is_none());
+    assert_eq!(res.body_string().await.unwrap(), TEXT);
+}

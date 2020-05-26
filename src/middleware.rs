@@ -9,6 +9,7 @@ use async_compression::futures::bufread::DeflateEncoder;
 use async_compression::futures::bufread::GzipEncoder;
 use futures_util::io::BufReader;
 use http_types::{headers, Body};
+use regex::Regex;
 use tide::http::Method;
 use tide::{Middleware, Next, Request, Response};
 
@@ -67,6 +68,16 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
             // Can't tell if we can compress if there is no Accepts-Encoding header.
             if is_head || accepts_encoding.is_none() {
                 return Ok(res);
+            }
+
+            // Should we transform?
+            if let Some(cache_control) = res.header(headers::CACHE_CONTROL) {
+                // No compression for `Cache-Control: no-transform`
+                // https://tools.ietf.org/html/rfc7234#section-5.2.2.4
+                let regex = Regex::new(r"(?:^|,)\s*?no-transform\s*?(?:,|$)").unwrap();
+                if regex.is_match(cache_control.as_str()) {
+                    return Ok(res);
+                }
             }
 
             // Check if an encoding may already exist.

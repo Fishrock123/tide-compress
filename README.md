@@ -19,12 +19,13 @@ async fn main() -> Result<(), std::io::Error> {
 - `Accept-Encoding` checking.
 - Minimum body size threshold.
   - Configurable when created by `CompressMiddleware::with_threshold(usize)`.
+- Does not compress responses with a [`Cache-Control: no-transform`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) header.
 
 ## Caveats
 
-- Does not do any `Accept-Encoding` priority handling.
+- Does not do `Accept-Encoding` priority handling.
 - Does not do any `Content-Type` / MIME checking.
-- Does not handle `Cache-Control` or `Vary` headers.
+- Does not adjust the `Vary` header.
 
 ## License
 
