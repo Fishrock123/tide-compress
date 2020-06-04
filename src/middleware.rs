@@ -88,16 +88,14 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
                 }
             }
 
-            let body = res.take_body();
-
             // Check body length against threshold.
-            if let Some(body_len) = body.len() {
+            if let Some(body_len) = res.len() {
                 if body_len < self.threshold {
-                    res.set_body(body);
                     return Ok(res);
                 }
             }
 
+            let body = res.take_body();
             let encoding = accepts_encoding.unwrap();
 
             // Get a new Body backed by an appropriate encoder, if one is available.
@@ -114,31 +112,25 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 
 /// Gets an `Encoding` that matches up to the Accept-Encoding value.
 fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Option<Encoding> {
-    let header = req.header(headers::ACCEPT_ENCODING);
-
-    if header.is_none() {
-        return None;
-    }
-
-    let header_values = header.unwrap();
+    let header = req.header(headers::ACCEPT_ENCODING)?;
 
     #[cfg(feature = "brotli")]
     {
-        if header_values.iter().any(|v| v.as_str() == "br") {
+        if header.iter().any(|v| v.as_str() == "br") {
             return Some(Encoding::BROTLI);
         }
     }
 
     #[cfg(feature = "gzip")]
     {
-        if header_values.iter().any(|v| v.as_str() == "gzip") {
+        if header.iter().any(|v| v.as_str() == "gzip") {
             return Some(Encoding::GZIP);
         }
     }
 
     #[cfg(feature = "deflate")]
     {
-        if header_values.iter().any(|v| v.as_str() == "deflate") {
+        if header.iter().any(|v| v.as_str() == "deflate") {
             return Some(Encoding::DEFLATE);
         }
     }
