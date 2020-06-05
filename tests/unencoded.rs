@@ -17,9 +17,8 @@ async fn no_accepts_encoding() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap());
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
         Ok(res)
     });
 
@@ -37,9 +36,8 @@ async fn invalid_accepts_encoding() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap());
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
         Ok(res)
     });
 
@@ -58,9 +56,8 @@ async fn head_request() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap());
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
         Ok(res)
     });
 
@@ -82,9 +79,8 @@ async fn below_threshold_request() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::new());
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap());
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
         Ok(res)
     });
 
@@ -106,10 +102,9 @@ async fn cache_control() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap())
-            .set_header(headers::CACHE_CONTROL, "no-transform");
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
+        res.insert_header(headers::CACHE_CONTROL, "no-transform");
         Ok(res)
     });
 

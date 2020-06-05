@@ -100,7 +100,7 @@ impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
 
             // Get a new Body backed by an appropriate encoder, if one is available.
             res.set_body(get_encoder(body, &encoding));
-            let mut res = res.set_header(headers::CONTENT_ENCODING, get_encoding_name(&encoding));
+            res.insert_header(headers::CONTENT_ENCODING, get_encoding_name(&encoding));
 
             // End size no longer matches body size, so any existing Content-Length is useless.
             res.remove_header(headers::CONTENT_LENGTH);

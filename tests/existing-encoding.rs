@@ -17,10 +17,9 @@ async fn existing_encoding() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap())
-            .set_header(headers::CONTENT_ENCODING, "some-format");
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
+        res.insert_header(headers::CONTENT_ENCODING, "some-format");
         Ok(res)
     });
 
@@ -39,11 +38,10 @@ async fn multi_existing_encoding() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap())
-            .append_header(headers::CONTENT_ENCODING, "gzip")
-            .append_header(headers::CONTENT_ENCODING, "identity");
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
+        res.append_header(headers::CONTENT_ENCODING, "gzip");
+        res.append_header(headers::CONTENT_ENCODING, "identity");
         Ok(res)
     });
 

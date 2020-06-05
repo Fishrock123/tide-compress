@@ -23,9 +23,8 @@ async fn brotli_compressed() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap());
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
         Ok(res)
     });
 
@@ -69,10 +68,9 @@ async fn gzip_compressed() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async move {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap())
-            .set_header(headers::CONTENT_ENCODING, "identity");
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
+        res.insert_header(headers::CONTENT_ENCODING, "identity");
         Ok(res)
     });
 
@@ -99,9 +97,8 @@ async fn deflate_compressed() {
     let mut app = tide::new();
     app.middleware(tide_compress::CompressMiddleware::with_threshold(16));
     app.at("/").get(|_| async {
-        let res = Response::new(StatusCode::Ok)
-            .body_string(TEXT.to_owned())
-            .set_mime("text/plain; charset=utf-8".parse().unwrap());
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
         Ok(res)
     });
 
