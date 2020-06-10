@@ -8,9 +8,8 @@ use async_compression::futures::bufread::DeflateEncoder;
 #[cfg(feature = "gzip")]
 use async_compression::futures::bufread::GzipEncoder;
 use futures_util::io::BufReader;
-use http_types::{headers, Body};
 use regex::Regex;
-use tide::http::Method;
+use tide::http::{headers, Body, Method};
 use tide::{Middleware, Next, Request, Response};
 
 use crate::Encoding;

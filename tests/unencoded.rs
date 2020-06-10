@@ -1,4 +1,4 @@
-use http_types::{headers, Method, Request, StatusCode, Url};
+use tide::http::{headers, Method, Request, StatusCode, Url};
 use tide::Response;
 
 const TEXT: &'static str = concat![
@@ -23,7 +23,7 @@ async fn no_accepts_encoding() {
     });
 
     let req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
-    let mut res: http_types::Response = app.respond(req).await.unwrap();
+    let mut res: tide::http::Response = app.respond(req).await.unwrap();
 
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
@@ -43,7 +43,7 @@ async fn invalid_accepts_encoding() {
 
     let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "not_an_encoding");
-    let mut res: http_types::Response = app.respond(req).await.unwrap();
+    let mut res: tide::http::Response = app.respond(req).await.unwrap();
 
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
@@ -63,7 +63,7 @@ async fn head_request() {
 
     let mut req = Request::new(Method::Head, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "gzip");
-    let res: http_types::Response = app.respond(req).await.unwrap();
+    let res: tide::http::Response = app.respond(req).await.unwrap();
 
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
@@ -86,7 +86,7 @@ async fn below_threshold_request() {
 
     let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "gzip");
-    let mut res: http_types::Response = app.respond(req).await.unwrap();
+    let mut res: tide::http::Response = app.respond(req).await.unwrap();
 
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::TRANSFER_ENCODING).is_none());
@@ -110,7 +110,7 @@ async fn cache_control() {
 
     let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "gzip");
-    let mut res: http_types::Response = app.respond(req).await.unwrap();
+    let mut res: tide::http::Response = app.respond(req).await.unwrap();
 
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::TRANSFER_ENCODING).is_none());

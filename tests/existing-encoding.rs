@@ -1,4 +1,4 @@
-use http_types::{headers, Method, Request, StatusCode, Url};
+use tide::http::{headers, Method, Request, StatusCode, Url};
 use tide::Response;
 
 const TEXT: &'static str = concat![
@@ -25,7 +25,7 @@ async fn existing_encoding() {
 
     let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "gzip");
-    let mut res: http_types::Response = app.respond(req).await.unwrap();
+    let mut res: tide::http::Response = app.respond(req).await.unwrap();
 
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
@@ -47,7 +47,7 @@ async fn multi_existing_encoding() {
 
     let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "gzip");
-    let mut res: http_types::Response = app.respond(req).await.unwrap();
+    let mut res: tide::http::Response = app.respond(req).await.unwrap();
 
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
