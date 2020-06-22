@@ -115,21 +115,21 @@ fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Optio
 
     #[cfg(feature = "brotli")]
     {
-        if header.iter().any(|v| v.as_str() == "br") {
+        if header.iter().any(|v| v.as_str().contains("br")) {
             return Some(Encoding::BROTLI);
         }
     }
 
     #[cfg(feature = "gzip")]
     {
-        if header.iter().any(|v| v.as_str() == "gzip") {
+        if header.iter().any(|v| v.as_str().contains("gzip")) {
             return Some(Encoding::GZIP);
         }
     }
 
     #[cfg(feature = "deflate")]
     {
-        if header.iter().any(|v| v.as_str() == "deflate") {
+        if header.iter().any(|v| v.as_str().contains("deflate")) {
             return Some(Encoding::DEFLATE);
         }
     }
