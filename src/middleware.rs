@@ -1,6 +1,3 @@
-use std::future::Future;
-use std::pin::Pin;
-
 #[cfg(feature = "brotli")]
 use async_compression::futures::bufread::BrotliEncoder;
 #[cfg(feature = "deflate")]
@@ -17,7 +14,7 @@ use crate::Encoding;
 const THRESHOLD: usize = 1024;
 
 /// A middleware for compressing response body data.
-#[derive(Debug, Clone)]
+#[derive(Clone, Debug)]
 pub struct CompressMiddleware {
     threshold: usize,
 }
@@ -48,64 +45,59 @@ impl CompressMiddleware {
     }
 }
 
-impl<State: Send + Sync + 'static> Middleware<State> for CompressMiddleware {
-    fn handle<'a>(
-        &'a self,
-        req: Request<State>,
-        next: Next<'a, State>,
-    ) -> Pin<Box<dyn Future<Output = tide::Result> + Send + 'a>> {
-        Box::pin(async move {
-            // Incoming Request data
-            // Need to grab these things before the request is consumed by `next.run()`.
-            let is_head = req.method() == Method::Head;
-            let accepts_encoding = accepts_encoding(&req);
+#[tide::utils::async_trait]
+impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddleware {
+    async fn handle(&self, req: Request<State>, next: Next<'_, State>) -> tide::Result {
+        // Incoming Request data
+        // Need to grab these things before the request is consumed by `next.run()`.
+        let is_head = req.method() == Method::Head;
+        let accepts_encoding = accepts_encoding(&req);
 
-            // Propagate to route
-            let mut res: Response = next.run(req).await?;
+        // Propagate to route
+        let mut res: Response = next.run(req).await;
 
-            // Head requests should have no body to compress.
-            // Can't tell if we can compress if there is no Accepts-Encoding header.
-            if is_head || accepts_encoding.is_none() {
+        // Head requests should have no body to compress.
+        // Can't tell if we can compress if there is no Accepts-Encoding header.
+        if is_head || accepts_encoding.is_none() {
+            return Ok(res);
+        }
+
+        // Should we transform?
+        if let Some(cache_control) = res.header(headers::CACHE_CONTROL) {
+            // No compression for `Cache-Control: no-transform`
+            // https://tools.ietf.org/html/rfc7234#section-5.2.2.4
+            let regex = Regex::new(r"(?:^|,)\s*?no-transform\s*?(?:,|$)").unwrap();
+            if regex.is_match(cache_control.as_str()) {
                 return Ok(res);
             }
+        }
 
-            // Should we transform?
-            if let Some(cache_control) = res.header(headers::CACHE_CONTROL) {
-                // No compression for `Cache-Control: no-transform`
-                // https://tools.ietf.org/html/rfc7234#section-5.2.2.4
-                let regex = Regex::new(r"(?:^|,)\s*?no-transform\s*?(?:,|$)").unwrap();
-                if regex.is_match(cache_control.as_str()) {
-                    return Ok(res);
-                }
+        // Check if an encoding may already exist.
+        // Can't tell if we should compress if an encoding set.
+        if let Some(previous_encoding) = res.header(headers::CONTENT_ENCODING) {
+            if previous_encoding.iter().any(|v| v.as_str() != "identity") {
+                return Ok(res);
             }
+        }
 
-            // Check if an encoding may already exist.
-            // Can't tell if we should compress if an encoding set.
-            if let Some(previous_encoding) = res.header(headers::CONTENT_ENCODING) {
-                if previous_encoding.iter().any(|v| v.as_str() != "identity") {
-                    return Ok(res);
-                }
+        // Check body length against threshold.
+        if let Some(body_len) = res.len() {
+            if body_len < self.threshold {
+                return Ok(res);
             }
+        }
 
-            // Check body length against threshold.
-            if let Some(body_len) = res.len() {
-                if body_len < self.threshold {
-                    return Ok(res);
-                }
-            }
+        let body = res.take_body();
+        let encoding = accepts_encoding.unwrap();
 
-            let body = res.take_body();
-            let encoding = accepts_encoding.unwrap();
+        // Get a new Body backed by an appropriate encoder, if one is available.
+        res.set_body(get_encoder(body, &encoding));
+        res.insert_header(headers::CONTENT_ENCODING, get_encoding_name(&encoding));
 
-            // Get a new Body backed by an appropriate encoder, if one is available.
-            res.set_body(get_encoder(body, &encoding));
-            res.insert_header(headers::CONTENT_ENCODING, get_encoding_name(&encoding));
+        // End size no longer matches body size, so any existing Content-Length is useless.
+        res.remove_header(headers::CONTENT_LENGTH);
 
-            // End size no longer matches body size, so any existing Content-Length is useless.
-            res.remove_header(headers::CONTENT_LENGTH);
-
-            Ok(res)
-        })
+        Ok(res)
     }
 }
 
