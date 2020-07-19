@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.4.0] - 2020-07-18
+
+- Dependencies: updated for Tide 0.12
+
 ## [0.3.0] - 2020-06-05
 
 - Dependencies: updated for tide 0.10
