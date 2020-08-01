@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.5.0] - 2020-08-01
+
+- Dependencies: updated for Tide 0.13
+- Fixed/Improved `Content-Encoding` parsing.
+
 ## [0.4.0] - 2020-07-18
 
 - Dependencies: updated for Tide 0.12
