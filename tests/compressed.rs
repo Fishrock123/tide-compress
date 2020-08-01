@@ -1,7 +1,7 @@
 use tide::http::{headers, Method, Request, StatusCode, Url};
 use tide::Response;
 
-const TEXT: &'static str = concat![
+const TEXT: &str = concat![
     "Chunk one\n",
     "data data\n",
     "\n",
@@ -12,7 +12,7 @@ const TEXT: &'static str = concat![
     "data data\n",
 ];
 
-const BR_COMPRESSED: &'static [u8] = &[
+const BR_COMPRESSED: &[u8] = &[
     27, 63, 0, 248, 157, 9, 118, 12, 101, 50, 101, 248, 252, 26, 229, 16, 90, 93, 43, 144, 189,
     209, 105, 5, 16, 55, 58, 200, 132, 35, 141, 117, 16, 5, 199, 247, 22, 131, 0, 51, 145, 60, 128,
     132, 79, 166, 110, 169, 162, 169, 129, 224, 63, 191, 0,
@@ -38,7 +38,7 @@ async fn brotli_compressed() {
     assert_eq!(res.body_bytes().await.unwrap(), BR_COMPRESSED);
 }
 
-const GZIPPED: &'static [u8] = &[
+const GZIPPED: &[u8] = &[
     // It should be this but miniz / miniz_oxide's gzip compression is rather lacking.
     //
     //     0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // gzip header

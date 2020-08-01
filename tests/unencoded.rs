@@ -1,7 +1,7 @@
 use tide::http::{headers, Method, Request, StatusCode, Url};
 use tide::Response;
 
-const TEXT: &'static str = concat![
+const TEXT: &str = concat![
     "Chunk one\n",
     "data data\n",
     "\n",
