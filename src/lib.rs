@@ -2,7 +2,7 @@
 
 mod middleware;
 
-pub use middleware::CompressMiddleware;
+pub use middleware::Compress;
 
 #[derive(PartialEq)]
 pub enum Encoding {

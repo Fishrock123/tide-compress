@@ -6,7 +6,7 @@ Outgoing compression middleware for the [Tide][] web framework.
 #[async_std::main]
 async fn main() -> Result<(), std::io::Error> {
     let mut app = tide::new();
-    app.with(tide_compress::CompressMiddleware::new());
+    app.with(tide_compress::Compress::new());
 }
 ```
 

@@ -1,5 +1,6 @@
 use tide::http::{headers, Method, Request, StatusCode, Url};
 use tide::Response;
+use tide_compress::Compress;
 
 const TEXT: &'static str = concat![
     "Chunk one\n",
@@ -21,7 +22,7 @@ const BR_COMPRESSED: &'static [u8] = &[
 #[async_std::test]
 async fn brotli_compressed() {
     let mut app = tide::new();
-    app.with(tide_compress::CompressMiddleware::with_threshold(16));
+    app.with(Compress::with_threshold(16));
     app.at("/").get(|_| async {
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(TEXT.to_owned());
@@ -66,7 +67,7 @@ const GZIPPED: &'static [u8] = &[
 #[async_std::test]
 async fn gzip_compressed() {
     let mut app = tide::new();
-    app.with(tide_compress::CompressMiddleware::with_threshold(16));
+    app.with(Compress::with_threshold(16));
     app.at("/").get(|_| async move {
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(TEXT.to_owned());
@@ -95,7 +96,7 @@ const DEFLATED: &'static [u8] = &[
 #[async_std::test]
 async fn deflate_compressed() {
     let mut app = tide::new();
-    app.with(tide_compress::CompressMiddleware::with_threshold(16));
+    app.with(Compress::with_threshold(16));
     app.at("/").get(|_| async {
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(TEXT.to_owned());

@@ -15,38 +15,38 @@ const THRESHOLD: usize = 1024;
 
 /// A middleware for compressing response body data.
 #[derive(Clone, Debug)]
-pub struct CompressMiddleware {
+pub struct Compress {
     threshold: usize,
 }
 
-impl Default for CompressMiddleware {
+impl Default for Compress {
     fn default() -> Self {
-        CompressMiddleware {
+        Self {
             threshold: THRESHOLD,
         }
     }
 }
 
-impl CompressMiddleware {
-    /// Creates a new CompressMiddleware.
+impl Compress {
+    /// Creates a new Compress middleware.
     ///
     /// Uses the default minimum body size threshold (1024 bytes).
     pub fn new() -> Self {
         Self::default()
     }
 
-    /// Creates a new CompressMiddleware with a custom minimum body size threshold.
+    /// Creates a new Compress middleware with a custom minimum body size threshold.
     ///
     /// # Arguments
     ///
     /// * `threshold` - minimum body size in bytes.
     pub fn with_threshold(threshold: usize) -> Self {
-        CompressMiddleware { threshold }
+        Compress { threshold }
     }
 }
 
 #[tide::utils::async_trait]
-impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddleware {
+impl<State: Clone + Send + Sync + 'static> Middleware<State> for Compress {
     async fn handle(&self, req: Request<State>, next: Next<'_, State>) -> tide::Result {
         // Incoming Request data
         // Need to grab these things before the request is consumed by `next.run()`.
