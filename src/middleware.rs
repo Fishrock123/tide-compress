@@ -5,7 +5,7 @@ use async_compression::futures::bufread::DeflateEncoder;
 #[cfg(feature = "gzip")]
 use async_compression::futures::bufread::GzipEncoder;
 use futures_util::io::BufReader;
-use regex::Regex;
+use tide::http::cache::{CacheControl, CacheDirective};
 use tide::http::content::{AcceptEncoding, ContentEncoding, Encoding};
 use tide::http::{headers, Body, Method};
 use tide::{Middleware, Next, Request, Response};
@@ -63,11 +63,13 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
         let mut accepts = accepts.unwrap();
 
         // Should we transform?
-        if let Some(cache_control) = res.header(headers::CACHE_CONTROL) {
+        if let Some(cache_control) = CacheControl::from_headers(&res)? {
             // No compression for `Cache-Control: no-transform`
             // https://tools.ietf.org/html/rfc7234#section-5.2.2.4
-            let regex = Regex::new(r"(?:^|,)\s*?no-transform\s*?(?:,|$)").unwrap();
-            if regex.is_match(cache_control.as_str()) {
+            if cache_control
+                .iter()
+                .any(|directive| directive == &CacheDirective::NoTransform)
+            {
                 return Ok(res);
             }
         }
