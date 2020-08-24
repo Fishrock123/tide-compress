@@ -26,7 +26,6 @@ deflate = ["async-compression/deflate"]
 async-compression = { version = "0.3", features = ["futures-bufread"] }
 futures-util = { version = "0.3", features = ["io"] }
 http-types = "2.5.0"
-regex = "1.3"
 tide = "0.13"
 
 [dev-dependencies]
