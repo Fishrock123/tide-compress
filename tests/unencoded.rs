@@ -43,12 +43,11 @@ async fn invalid_accepts_encoding() {
 
     let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
     req.insert_header(headers::ACCEPT_ENCODING, "not_an_encoding");
-    let mut res: tide::http::Response = app.respond(req).await.unwrap();
+    let res: tide::http::Response = app.respond(req).await.unwrap();
 
-    assert_eq!(res.status(), 200);
+    assert_eq!(res.status(), StatusCode::NotAcceptable);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert!(res.header(headers::CONTENT_ENCODING).is_none());
-    assert_eq!(res.body_string().await.unwrap(), TEXT);
 }
 
 #[async_std::test]
