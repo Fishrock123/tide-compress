@@ -31,3 +31,6 @@ tide = "0.13"
 [dev-dependencies]
 async-h1 = "2.1"
 async-std = { version = "1.6", features = ["attributes"] }
+
+[patch.crates-io]
+http-types = { git = "https://github.com/http-rs/http-types.git", branch = "accept-encoding" }
