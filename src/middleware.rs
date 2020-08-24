@@ -6,10 +6,9 @@ use async_compression::futures::bufread::DeflateEncoder;
 use async_compression::futures::bufread::GzipEncoder;
 use futures_util::io::BufReader;
 use regex::Regex;
+use tide::http::content::{AcceptEncoding, ContentEncoding, Encoding};
 use tide::http::{headers, Body, Method};
 use tide::{Middleware, Next, Request, Response};
-
-use crate::Encoding;
 
 const THRESHOLD: usize = 1024;
 
@@ -51,16 +50,17 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
         // Incoming Request data
         // Need to grab these things before the request is consumed by `next.run()`.
         let is_head = req.method() == Method::Head;
-        let accepts_encoding = accepts_encoding(&req);
+        let accepts = AcceptEncoding::from_headers(&req)?;
 
         // Propagate to route
         let mut res: Response = next.run(req).await;
 
         // Head requests should have no body to compress.
         // Can't tell if we can compress if there is no Accepts-Encoding header.
-        if is_head || accepts_encoding.is_none() {
+        if is_head || accepts.is_none() {
             return Ok(res);
         }
+        let mut accepts = accepts.unwrap();
 
         // Should we transform?
         if let Some(cache_control) = res.header(headers::CACHE_CONTROL) {
@@ -74,8 +74,8 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
 
         // Check if an encoding may already exist.
         // Can't tell if we should compress if an encoding set.
-        if let Some(previous_encoding) = res.header(headers::CONTENT_ENCODING) {
-            if previous_encoding.iter().any(|v| v.as_str() != "identity") {
+        if let Some(previous_encoding) = ContentEncoding::from_headers(&res)? {
+            if previous_encoding != Encoding::Identity {
                 return Ok(res);
             }
         }
@@ -88,11 +88,18 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
         }
 
         let body = res.take_body();
-        let encoding = accepts_encoding.unwrap();
+        let encoding = accepts.negotiate(&[
+            #[cfg(feature = "brotli")]
+            Encoding::Brotli,
+            #[cfg(feature = "gzip")]
+            Encoding::Gzip,
+            #[cfg(feature = "deflate")]
+            Encoding::Deflate,
+        ])?;
 
         // Get a new Body backed by an appropriate encoder, if one is available.
         res.set_body(get_encoder(body, &encoding));
-        res.insert_header(headers::CONTENT_ENCODING, get_encoding_name(&encoding));
+        encoding.apply(&mut res);
 
         // End size no longer matches body size, so any existing Content-Length is useless.
         res.remove_header(headers::CONTENT_LENGTH);
@@ -101,66 +108,28 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
     }
 }
 
-/// Gets an `Encoding` that matches up to the Accept-Encoding value.
-fn accepts_encoding<State: Send + Sync + 'static>(req: &Request<State>) -> Option<Encoding> {
-    let header = req.header(headers::ACCEPT_ENCODING)?;
-
-    #[cfg(feature = "brotli")]
-    {
-        if header.iter().any(|v| v.as_str().contains("br")) {
-            return Some(Encoding::BROTLI);
-        }
-    }
-
-    #[cfg(feature = "gzip")]
-    {
-        if header.iter().any(|v| v.as_str().contains("gzip")) {
-            return Some(Encoding::GZIP);
-        }
-    }
-
-    #[cfg(feature = "deflate")]
-    {
-        if header.iter().any(|v| v.as_str().contains("deflate")) {
-            return Some(Encoding::DEFLATE);
-        }
-    }
-
-    None
-}
-
 /// Returns a `Body` made from an encoder chosen from the `Encoding`.
-fn get_encoder(body: Body, encoding: &Encoding) -> Body {
+fn get_encoder(body: Body, encoding: &ContentEncoding) -> Body {
     #[cfg(feature = "brotli")]
     {
-        if *encoding == Encoding::BROTLI {
+        if *encoding == Encoding::Brotli {
             return Body::from_reader(BufReader::new(BrotliEncoder::new(body)), None);
         }
     }
 
     #[cfg(feature = "gzip")]
     {
-        if *encoding == Encoding::GZIP {
+        if *encoding == Encoding::Gzip {
             return Body::from_reader(BufReader::new(GzipEncoder::new(body)), None);
         }
     }
 
     #[cfg(feature = "deflate")]
     {
-        if *encoding == Encoding::DEFLATE {
+        if *encoding == Encoding::Deflate {
             return Body::from_reader(BufReader::new(DeflateEncoder::new(body)), None);
         }
     }
 
     body
-}
-
-/// Maps an `Encoding` to a Content-Encoding string.
-fn get_encoding_name(encoding: &Encoding) -> String {
-    (match *encoding {
-        Encoding::BROTLI => "br",
-        Encoding::GZIP => "gzip",
-        Encoding::DEFLATE => "deflate",
-    })
-    .to_string()
 }
