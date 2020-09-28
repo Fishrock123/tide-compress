@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.6.0] - 2020-09-28
+
+- Dependencies: updated for http-types 2.5
+- Internal improvements: now uses http-types for Content-Encoding & Cache-Control.
+
 ## [0.5.0] - 2020-08-01
 
 - Dependencies: updated for Tide 0.13

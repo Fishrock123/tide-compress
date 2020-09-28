@@ -1,6 +1,6 @@
 [package]
 name = "tide-compress"
-version = "0.5.0"
+version = "0.6.0"
 authors = ["Jeremiah Senkpiel <fishrock123@rocketmail.com>"]
 edition = "2018"
 license = "BlueOak-1.0.0"
