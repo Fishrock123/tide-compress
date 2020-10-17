@@ -4,10 +4,10 @@ version = "0.6.0"
 authors = ["Jeremiah Senkpiel <fishrock123@rocketmail.com>"]
 edition = "2018"
 license = "BlueOak-1.0.0"
-description = "Outgoing compression middleware for the Tide web framework."
+description = "Outgoing compression middleware for the Tide server framework."
 readme = "README.md"
 repository = "https://github.com/Fishrock123/tide-compress"
-keywords = ["tide", "middleware", "gzip", "compression"]
+keywords = ["tide", "middleware", "brotli", "gzip", "compression"]
 categories = [
   "web-programming::http-server"
 ]
