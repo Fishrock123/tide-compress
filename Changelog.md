@@ -10,7 +10,9 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 ## [0.7.0] - 2020-10-17
 
 - Added `Vary` header modification.
+- Docs: various updates, more examples.
 - Dependencies: updated to Tide 0.14
+- Dependencies: now depends on `futures-lite` rather than `futures-util`.
 
 ## [0.6.0] - 2020-09-28
 
