@@ -39,7 +39,9 @@ async fn brotli_compressed() {
 }
 
 const GZIPPED: &[u8] = &[
-    // It should be this but miniz / miniz_oxide's gzip compression is rather lacking.
+    // It should be this but miniz_oxide's gzip compression doesn't always pick the best huffman codes.
+    //
+    // See https://github.com/Frommi/miniz_oxide/issues/77
     //
     //     0x1f, 0x8b, 0x08, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, // gzip header
     //     0xff, // OS type
