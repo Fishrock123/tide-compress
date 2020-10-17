@@ -35,6 +35,7 @@ async fn brotli_compressed() {
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert_eq!(res[headers::CONTENT_ENCODING], "br");
+    assert_eq!(res[headers::VARY], "accept-encoding");
     assert_eq!(res.body_bytes().await.unwrap(), BR_COMPRESSED);
 }
 
@@ -83,6 +84,7 @@ async fn gzip_compressed() {
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert_eq!(res[headers::CONTENT_ENCODING], "gzip");
+    assert_eq!(res[headers::VARY], "accept-encoding");
     assert_eq!(res.body_bytes().await.unwrap(), GZIPPED);
 }
 
@@ -111,5 +113,6 @@ async fn deflate_compressed() {
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert_eq!(res[headers::CONTENT_ENCODING], "deflate");
+    assert_eq!(res[headers::VARY], "accept-encoding");
     assert_eq!(res.body_bytes().await.unwrap(), DEFLATED);
 }

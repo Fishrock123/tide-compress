@@ -6,6 +6,7 @@ use async_compression::futures::bufread::DeflateEncoder;
 use async_compression::futures::bufread::GzipEncoder;
 use futures_util::io::BufReader;
 use tide::http::cache::{CacheControl, CacheDirective};
+use http_types::conditional::Vary;
 use tide::http::content::{AcceptEncoding, ContentEncoding, Encoding};
 use tide::http::{headers, Body, Method};
 use tide::{Middleware, Next, Request, Response};
@@ -100,6 +101,11 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
                 return Ok(res);
             }
         }
+
+        // Set the Vary header, similar to how https://www.npmjs.com/package/compression does it.
+        let mut vary = Vary::new();
+        vary.push(headers::ACCEPT_ENCODING)?;
+        vary.apply(&mut res);
 
         // Check if an encoding may already exist.
         // Can't tell if we should compress if an encoding set.

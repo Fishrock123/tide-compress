@@ -30,6 +30,7 @@ async fn existing_encoding() {
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert_eq!(res[headers::CONTENT_ENCODING], "deflate");
+    assert_eq!(res[headers::VARY], "accept-encoding");
     assert_eq!(res.body_string().await.unwrap(), TEXT);
 }
 
@@ -53,5 +54,6 @@ async fn multi_existing_encoding() {
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert_eq!(res[headers::CONTENT_ENCODING][0].as_str(), "identity");
     assert_eq!(res[headers::CONTENT_ENCODING][1].as_str(), "gzip");
+    assert_eq!(res[headers::VARY], "accept-encoding");
     assert_eq!(res.body_string().await.unwrap(), TEXT);
 }

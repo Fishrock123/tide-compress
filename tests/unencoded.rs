@@ -28,6 +28,7 @@ async fn no_accepts_encoding() {
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert!(res.header(headers::CONTENT_ENCODING).is_none());
+    assert!(res.header(headers::VARY).is_none());
     assert_eq!(res.body_string().await.unwrap(), TEXT);
 }
 
@@ -48,6 +49,7 @@ async fn invalid_accepts_encoding() {
     assert_eq!(res.status(), StatusCode::NotAcceptable);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert!(res.header(headers::CONTENT_ENCODING).is_none());
+    assert!(res.header(headers::VARY).is_none());
 }
 
 #[async_std::test]
@@ -67,6 +69,7 @@ async fn head_request() {
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::CONTENT_LENGTH).is_none());
     assert!(res.header(headers::CONTENT_ENCODING).is_none());
+    assert!(res.header(headers::VARY).is_none());
     // XXX(Jeremiah): seems like async-h1 or tide may mishandle HEAD requests.
     // HEAD requests should never have a body.
     //
@@ -93,6 +96,7 @@ async fn below_threshold_request() {
     //
     // assert_eq!(res[headers::CONTENT_LENGTH], "64");
     assert!(res.header(headers::CONTENT_ENCODING).is_none());
+    assert_eq!(res[headers::VARY], "accept-encoding");
     assert_eq!(res.body_string().await.unwrap(), TEXT);
 }
 
@@ -114,5 +118,6 @@ async fn cache_control() {
     assert_eq!(res.status(), 200);
     assert!(res.header(headers::TRANSFER_ENCODING).is_none());
     assert!(res.header(headers::CONTENT_ENCODING).is_none());
+    assert!(res.header(headers::VARY).is_none());
     assert_eq!(res.body_string().await.unwrap(), TEXT);
 }
