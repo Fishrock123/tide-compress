@@ -6,7 +6,7 @@ use async_compression::futures::bufread::DeflateEncoder;
 use async_compression::futures::bufread::GzipEncoder;
 use futures_lite::io::BufReader;
 use tide::http::cache::{CacheControl, CacheDirective};
-use http_types::conditional::Vary;
+use tide::http::conditional::Vary;
 use tide::http::content::{AcceptEncoding, ContentEncoding, Encoding};
 use tide::http::{headers, Body, Method};
 use tide::{Middleware, Next, Request, Response};
