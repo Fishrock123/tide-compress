@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.7.0] - 2020-10-17
+
+- Added `Vary` header modification.
+- Dependencies: updated to Tide 0.14
+
 ## [0.6.0] - 2020-09-28
 
 - Dependencies: updated for http-types 2.5
