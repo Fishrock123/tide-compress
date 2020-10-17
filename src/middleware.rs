@@ -13,6 +13,15 @@ use tide::{Middleware, Next, Request, Response};
 const THRESHOLD: usize = 1024;
 
 /// A middleware for compressing response body data.
+///
+/// ## Example
+/// ```rust
+/// # async_std::task::block_on(async {
+/// let mut app = tide::new();
+///
+/// app.with(tide_compress::CompressMiddleware::new());
+/// # })
+/// ```
 #[derive(Clone, Debug)]
 pub struct CompressMiddleware {
     threshold: usize,
@@ -30,6 +39,15 @@ impl CompressMiddleware {
     /// Creates a new CompressMiddleware.
     ///
     /// Uses the default minimum body size threshold (1024 bytes).
+    ///
+    /// ## Example
+    /// ```rust
+    /// # async_std::task::block_on(async {
+    /// let mut app = tide::new();
+    ///
+    /// app.with(tide_compress::CompressMiddleware::new());
+    /// # })
+    /// ```
     pub fn new() -> Self {
         Self::default()
     }
@@ -39,6 +57,15 @@ impl CompressMiddleware {
     /// # Arguments
     ///
     /// * `threshold` - minimum body size in bytes.
+    ///
+    /// ## Example
+    /// ```rust
+    /// # async_std::task::block_on(async {
+    /// let mut app = tide::new();
+    ///
+    /// app.with(tide_compress::CompressMiddleware::with_threshold(512));
+    /// # })
+    /// ```
     pub fn with_threshold(threshold: usize) -> Self {
         CompressMiddleware { threshold }
     }
