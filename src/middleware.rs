@@ -4,7 +4,7 @@ use async_compression::futures::bufread::BrotliEncoder;
 use async_compression::futures::bufread::DeflateEncoder;
 #[cfg(feature = "gzip")]
 use async_compression::futures::bufread::GzipEncoder;
-use futures_util::io::BufReader;
+use futures_lite::io::BufReader;
 use tide::http::cache::{CacheControl, CacheDirective};
 use http_types::conditional::Vary;
 use tide::http::content::{AcceptEncoding, ContentEncoding, Encoding};
