@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.8.1] - 2020-11-19
+
+- Dependencies: do not require any Tide features
+    - This should prevent the default Tide logger from being included when using this crate.
+
 ## [0.8.0] - 2020-11-18
 
 - Dependencies: updated to Tide 0.15
