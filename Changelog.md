@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.9.0] - 2021-01-29
+
+- Enabled `DEFLATE` support by default, since there is no real drawbacks to doing so.
+    - Is the same algorithm and dependency as used for `GZIP`, just with no meta-info.
+- Dependencies: updated to Tide 0.16
+
 ## [0.8.1] - 2020-11-19
 
 - Dependencies: do not require any Tide features
