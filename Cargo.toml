@@ -16,16 +16,19 @@ categories = [
 
 [features]
 default = ["all"]
-all = ["brotli", "gzip", "deflate"]
+all = ["brotli", "gzip", "deflate", "regex-check"]
 
 brotli = ["async-compression/brotli"]
 gzip = ["async-compression/gzip"]
 deflate = ["async-compression/deflate"]
 
+regex-check = ["regex"]
+
 [dependencies]
 async-compression = { version = "0.3", features = ["futures-bufread"] }
 futures-lite = "1.11"
 http-types = "2.5"
+regex = { version = "1.5", optional = true }
 tide = { version = "0.16", default-features = false }
 
 [dev-dependencies]

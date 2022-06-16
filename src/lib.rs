@@ -12,4 +12,4 @@
 
 mod middleware;
 
-pub use middleware::CompressMiddleware;
+pub use middleware::{CompressMiddleware, CompressMiddlewareBuilder};

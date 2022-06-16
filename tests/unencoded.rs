@@ -15,7 +15,11 @@ const TEXT: &str = concat![
 #[async_std::test]
 async fn no_accepts_encoding() {
     let mut app = tide::new();
-    app.with(tide_compress::CompressMiddleware::with_threshold(16));
+    app.with(
+        tide_compress::CompressMiddleware::builder()
+            .threshold(16)
+            .build(),
+    );
     app.at("/").get(|_| async {
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(TEXT.to_owned());
@@ -35,7 +39,11 @@ async fn no_accepts_encoding() {
 #[async_std::test]
 async fn invalid_accepts_encoding() {
     let mut app = tide::new();
-    app.with(tide_compress::CompressMiddleware::with_threshold(16));
+    app.with(
+        tide_compress::CompressMiddleware::builder()
+            .threshold(16)
+            .build(),
+    );
     app.at("/").get(|_| async {
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(TEXT.to_owned());
@@ -55,7 +63,11 @@ async fn invalid_accepts_encoding() {
 #[async_std::test]
 async fn head_request() {
     let mut app = tide::new();
-    app.with(tide_compress::CompressMiddleware::with_threshold(16));
+    app.with(
+        tide_compress::CompressMiddleware::builder()
+            .threshold(16)
+            .build(),
+    );
     app.at("/").get(|_| async {
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(TEXT.to_owned());
@@ -103,7 +115,11 @@ async fn below_threshold_request() {
 #[async_std::test]
 async fn cache_control() {
     let mut app = tide::new();
-    app.with(tide_compress::CompressMiddleware::with_threshold(16));
+    app.with(
+        tide_compress::CompressMiddleware::builder()
+            .threshold(16)
+            .build(),
+    );
     app.at("/").get(|_| async {
         let mut res = Response::new(StatusCode::Ok);
         res.set_body(TEXT.to_owned());
