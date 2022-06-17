@@ -17,8 +17,7 @@ async fn main() -> tide::Result {
   - Only pulls in the necessary dependencies for the desired configuration.
   - Defaults to Brotli & Gzip.
 - `Accept-Encoding` checking including priority.
-- Minimum body size threshold.
-  - Configurable when created by `CompressMiddleware::with_threshold(usize)`.
+- Minimum body size threshold (Default: 1024 bytes, configurable).
 - Does not compress responses with a [`Cache-Control: no-transform`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) header.
 - Sets the [`Vary`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary) header.
 - Checks the [`Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) header (MIME).
