@@ -7,6 +7,8 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.0] - 2022-06-17
+
 - Feat: `Content-Type` header compressibility checking.
     - First via a check to [jshttp's comprehensive database](https://github.com/jshttp/mime-db/blob/master/db.json), which is compiled to a [perfect hash function](https://github.com/rust-phf/rust-phf) at build time.
     - Falls back to a `Regex` check, which is customizable.
