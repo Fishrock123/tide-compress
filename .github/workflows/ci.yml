@@ -27,11 +27,11 @@ jobs:
         toolchain: ${{ matrix.rust }}
         override: true
 
-    - name: check no features
+    - name: check minimal features
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --no-default-features
+        args: --no-default-features --features=brotli
 
     - name: check
       uses: actions-rs/cargo@v1
