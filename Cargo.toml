@@ -16,18 +16,20 @@ categories = [
 
 [features]
 default = ["all"]
-all = ["brotli", "gzip", "deflate", "regex-check"]
+all = ["brotli", "gzip", "deflate", "db-check"]
 
 brotli = ["async-compression/brotli"]
 gzip = ["async-compression/gzip"]
 deflate = ["async-compression/deflate"]
 
+db-check = ["regex-check", "phf"]
 regex-check = ["regex"]
 
 [dependencies]
 async-compression = { version = "0.3", features = ["futures-bufread"] }
 futures-lite = "1.11"
 http-types = "2.5"
+phf = { version = "0.10", optional = true }
 regex = { version = "1.5", optional = true }
 tide = { version = "0.16", default-features = false }
 
@@ -39,3 +41,10 @@ async-std = { version = "1.6", features = ["attributes"] }
 version = "1"
 default-features = false # Disable features which are enabled by default
 features = ["user-hooks"]
+
+[build-dependencies]
+async-std = { version = "1.11", features = ["attributes"] }
+phf_codegen = "0.10"
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+surf = "2.3.2"

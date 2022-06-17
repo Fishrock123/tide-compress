@@ -21,13 +21,12 @@ async fn main() -> tide::Result {
   - Configurable when created by `CompressMiddleware::with_threshold(usize)`.
 - Does not compress responses with a [`Cache-Control: no-transform`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Cache-Control) header.
 - Sets the [`Vary`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Vary) header.
-- Checks the [`Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) header (MIME) against a regular expression, by default: `^text/|\+(?:json|text|xml)$` (case insensitive).
-  - Fully override-able to any custom [`Regex`](https://docs.rs/regex/1/regex/struct.Regex.html), with `None` as an option.
-  - Functionality can be excluded in crate features if the `regex` crate poses build issues.
-
-## Caveats
-
-- Still missing advanced `Content-Type` (MIME) checking.
+- Checks the [`Content-Type`](https://developer.mozilla.org/en-US/docs/Web/HTTP/Headers/Content-Type) header (MIME).
+  - Checks against [jshttp's comprehensive database](https://github.com/jshttp/mime-db/blob/master/db.json), which is compiled to a [perfect hash function](https://github.com/rust-phf/rust-phf) at build time.
+  - If not in the database, checks against a regular expression.
+    - Default: `^text/|\+(?:json|text|xml)$` (case insensitive).
+    - Fully override-able to any custom [`Regex`](https://docs.rs/regex/1/regex/struct.Regex.html), with `None` as an option.
+  - Functionality can be excluded in crate features if the `regex` crate or codegen poses build issues.
 
 ## License
 

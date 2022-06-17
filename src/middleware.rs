@@ -27,6 +27,13 @@ const CONTENT_TYPE_CHECK_PATTERN: &str = r"^text/|\+(?:json|text|xml)$";
 #[cfg(feature = "regex-check")]
 const EXTRACT_TYPE_PATTERN: &str = r"^\s*([^;\s]*)(?:;|\s|$)";
 
+#[cfg(feature = "db-check")]
+// See `build.rs`. Pulls from a JSON MIME database for compressible entries and puts them
+//  into a set with a perfect hash function, with roughly or near to O(1) lookup time.
+//
+// const MIME_DB: phf::Set<&'static str> = ...
+include!(concat!(env!("OUT_DIR"), "/codegen.rs"));
+
 /// A middleware for compressing response body data.
 ///
 /// ## Example
@@ -160,6 +167,13 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
                     .captures(content_type.value().as_str())
                     .and_then(|captures| captures.get(1))
                 {
+                    #[cfg(feature = "db-check")]
+                    if !MIME_DB.contains(extension_match.as_str())
+                        && !content_type_check.is_match(extension_match.as_str())
+                    {
+                        return Ok(res);
+                    }
+                    #[cfg(not(feature = "db-check"))]
                     if !content_type_check.is_match(extension_match.as_str()) {
                         return Ok(res);
                     }

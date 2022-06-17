@@ -75,3 +75,30 @@ async fn raw_bytes_compressed_no_filter() {
     assert_eq!(res[headers::VARY], "accept-encoding");
     assert_eq!(res.body_bytes().await.unwrap(), BR_COMPRESSED);
 }
+
+#[async_std::test]
+async fn compressible_content_type() {
+    let mut app = tide::new();
+    app.with(
+        tide_compress::CompressMiddleware::builder()
+            .threshold(16)
+            .build(),
+    );
+    app.at("/").get(|_| async {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.as_bytes().to_owned());
+        res.set_content_type("font/ttf".parse::<tide::http::Mime>()?);
+        Ok(res)
+    });
+
+    let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
+    req.insert_header(headers::ACCEPT_ENCODING, "br");
+    let mut res: tide::http::Response = app.respond(req).await.unwrap();
+
+    assert_eq!(res.status(), 200);
+    assert_eq!(res[headers::CONTENT_TYPE], "font/ttf");
+    assert!(res.header(headers::CONTENT_LENGTH).is_none());
+    assert_eq!(res[headers::CONTENT_ENCODING], "br");
+    assert_eq!(res[headers::VARY], "accept-encoding");
+    assert_eq!(res.body_bytes().await.unwrap(), BR_COMPRESSED);
+}
