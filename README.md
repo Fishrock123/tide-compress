@@ -27,6 +27,12 @@ async fn main() -> tide::Result {
     - Fully override-able to any custom [`Regex`](https://docs.rs/regex/1/regex/struct.Regex.html), with `None` as an option.
   - Functionality can be excluded in crate features if the `regex` crate or codegen poses build issues.
 
+
+## Note
+
+This crate, in its current set up with the `db-check` feature enabled (which is by default),
+pulls down [a json MIME database](https://github.com/jshttp/mime-db/blob/master/db.json) from the network at build time.
+
 ## License
 
 Licensed under the [BlueOak Model License 1.0.0](LICENSE.md) — _[Contributions via DCO 1.1](contributing.md#developers-certificate-of-origin)_
