@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.2] - 2022-06-20
+
+- Deps: uses `h1-client-rustls` for Surf in build-deps
+    - Avoids some compilation dependency issues on some platforms
+- Deps: reduced dependance on http-types features
+
 ## [0.10.1] - 2022-06-17
 
 - Docs: fix mention of outdated body size threshold configuration.
