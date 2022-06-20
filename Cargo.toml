@@ -35,7 +35,7 @@ tide = { version = "0.16", default-features = false }
 
 [dev-dependencies]
 async-h1 = "2.1"
-async-std = { version = "1.6", features = ["attributes"] }
+async-std = { version = "1.11", features = ["attributes"] }
 
 [dev-dependencies.cargo-husky]
 version = "1"
