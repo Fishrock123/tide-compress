@@ -12,7 +12,7 @@
 //!
 //! ```rust
 //! #[async_std::main]
-//! async fn main() -> tide::Result {
+//! async fn main() {
 //!     let mut app = tide::new();
 //!     app.with(tide_compress::CompressMiddleware::new());
 //! }
