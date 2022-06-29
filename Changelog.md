@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.3] - 2022-06-29
+
+- Docs: minor updates, linking, readme badges, etc
+- Meta: attempt to fix doc.rs build.
+
 ## [0.10.2] - 2022-06-20
 
 - Deps: uses `h1-client-rustls` for Surf in build-deps
