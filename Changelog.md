@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.4] - 2022-07-04
+
+- Build: avoid including build deps if `"db-check"` feature is not enabled.
+- Docs: minor formatting fixes.
+
 ## [0.10.3] - 2022-06-29
 
 - Docs: minor updates, linking, readme badges, etc
