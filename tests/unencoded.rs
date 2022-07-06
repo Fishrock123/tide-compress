@@ -61,6 +61,30 @@ async fn invalid_accepts_encoding() {
 }
 
 #[async_std::test]
+async fn identity_accepts_encoding() {
+    let mut app = tide::new();
+    app.with(
+        tide_compress::CompressMiddleware::builder()
+            .threshold(16)
+            .build(),
+    );
+    app.at("/").get(|_| async {
+        let mut res = Response::new(StatusCode::Ok);
+        res.set_body(TEXT.to_owned());
+        Ok(res)
+    });
+
+    let mut req = Request::new(Method::Get, Url::parse("http://_/").unwrap());
+    req.insert_header(headers::ACCEPT_ENCODING, "identity");
+    let mut res: tide::http::Response = app.respond(req).await.unwrap();
+
+    assert_eq!(res.status(), 200);
+    assert!(res.header(headers::CONTENT_ENCODING).is_none());
+    assert_eq!(res[headers::VARY], "accept-encoding");
+    assert_eq!(res.body_string().await.unwrap(), TEXT);
+}
+
+#[async_std::test]
 async fn head_request() {
     let mut app = tide::new();
     app.with(

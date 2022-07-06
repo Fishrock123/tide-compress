@@ -189,7 +189,14 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
             Encoding::Gzip,
             #[cfg(feature = "deflate")]
             Encoding::Deflate,
+            Encoding::Identity,
         ])?;
+
+        if encoding == Encoding::Identity {
+            res.remove_header(headers::CONTENT_ENCODING);
+            res.set_body(body);
+            return Ok(res);
+        }
 
         // Get a new Body backed by an appropriate encoder, if one is available.
         res.set_body(get_encoder(body, &encoding));
