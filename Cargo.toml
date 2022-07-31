@@ -5,7 +5,7 @@ members = [
 
 [package]
 name = "tide-compress"
-version = "0.10.5"
+version = "0.10.6"
 authors = ["Jeremiah Senkpiel <fishrock123@rocketmail.com>"]
 edition = "2018"
 license = "BlueOak-1.0.0"

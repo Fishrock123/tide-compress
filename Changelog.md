@@ -7,6 +7,11 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.6] - 2022-07-31
+
+- Refactor: no longer does database codegen on build, codegen is in-repo.
+- Deps: phf @ 0.11
+
 ## [0.10.5] - 2022-07-31
 
 - Fix: conform to RFC 9110 for `Accept-Encoding: Identity`.
