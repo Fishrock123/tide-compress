@@ -1,9 +1,11 @@
-use futures_lite::io::BufReader;
 use tide::http::cache::{CacheControl, CacheDirective};
 use tide::http::conditional::Vary;
 use tide::http::content::{AcceptEncoding, ContentEncoding, Encoding};
 use tide::http::{headers, Body, Method};
 use tide::{Middleware, Next, Request, Response};
+
+#[cfg(any(feature = "brotli", feature = "deflate", feature = "gzip"))]
+use futures_lite::io::BufReader;
 
 #[cfg(feature = "brotli")]
 use async_compression::futures::bufread::BrotliEncoder;
@@ -210,6 +212,10 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
 }
 
 /// Returns a `Body` made from an encoder chosen from the `Encoding`.
+#[cfg_attr(
+    not(any(feature = "brotli", feature = "deflate", feature = "gzip")),
+    allow(unused_variables)
+)]
 fn get_encoder(body: Body, encoding: &ContentEncoding) -> Body {
     #[cfg(feature = "brotli")]
     {
