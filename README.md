@@ -18,6 +18,7 @@ async fn main() {
   - Prioritizes Brotli if available.
   - Only pulls in the necessary dependencies for the desired configuration.
   - Defaults to Brotli & Gzip.
+  - Also handles the `"identity"` encoding directive [as per RFC 9110][Identity].
 - [`Accept-Encoding`][] header checking including priority.
 - Minimum body size threshold (Default: 1024 bytes, configurable).
 - Does not compress responses with a [`Cache-Control: no-transform`][] header.
@@ -48,4 +49,5 @@ Licensed under the [BlueOak Model License 1.0.0](LICENSE.md) — _[Contributions
 [Brotli]: https://en.wikipedia.org/wiki/Brotli
 [Deflate]: https://en.wikipedia.org/wiki/Deflate
 [Gzip]: https://en.wikipedia.org/wiki/Gzip
+[Identity]: https://www.rfc-editor.org/rfc/rfc9110.html#name-accept-encoding
 [Tide]: https://github.com/http-rs/tide
