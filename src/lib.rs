@@ -1,12 +1,53 @@
-#![forbid(unsafe_code, future_incompatible)]
+#![forbid(unsafe_code)]
+#![deny(future_incompatible)]
 #![warn(
+    meta_variable_misuse,
     missing_debug_implementations,
+    noop_method_call,
     rust_2018_idioms,
     trivial_casts,
-    unused_qualifications
+    unused_lifetimes,
+    unused_qualifications,
+    unused_macro_rules,
+    variant_size_differences
 )]
-#![doc(test(attr(deny(rust_2018_idioms, warnings))))]
+#![doc(test(attr(deny(future_incompatible, rust_2018_idioms, warnings))))]
 #![doc(test(attr(allow(unused_extern_crates, unused_variables))))]
+#![deny(
+    clippy::allow_attributes_without_reason,
+    clippy::default_union_representation,
+    clippy::exit,
+    clippy::lossy_float_literal,
+    clippy::mem_forget,
+    clippy::multiple_inherent_impl,
+    clippy::mut_mut,
+    clippy::ptr_as_ptr,
+    clippy::unwrap_in_result,
+    clippy::unwrap_used,
+    clippy::wildcard_dependencies
+)]
+#![warn(
+    clippy::dbg_macro,
+    clippy::empty_drop,
+    clippy::fallible_impl_from,
+    clippy::inefficient_to_string,
+    clippy::macro_use_imports,
+    clippy::match_same_arms,
+    clippy::multiple_crate_versions,
+    clippy::no_effect_underscore_binding,
+    clippy::panic,
+    clippy::print_stderr,
+    clippy::print_stdout,
+    clippy::same_name_method,
+    clippy::single_char_lifetime_names,
+    clippy::string_to_string,
+    clippy::trait_duplication_in_bounds,
+    clippy::type_repetition_in_bounds,
+    clippy::unimplemented,
+    clippy::unneeded_field_pattern,
+    clippy::unseparated_literal_suffix,
+    clippy::used_underscore_binding
+)]
 
 //! Outgoing body compression middleware for the [Tide][] server framework.
 //!

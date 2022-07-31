@@ -126,7 +126,7 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
         if is_head || accepts.is_none() {
             return Ok(res);
         }
-        let mut accepts = accepts.unwrap();
+        let mut accepts = accepts.expect("checked directly above");
 
         // Should we transform?
         if let Some(cache_control) = CacheControl::from_headers(&res)? {
