@@ -34,7 +34,7 @@ regex-check = ["regex"]
 async-compression = { version = "0.3", features = ["futures-bufread"] }
 futures-lite = "1.11"
 http-types = { version = "2.5", default-features = false }
-phf = { version = "0.10", optional = true }
+phf = { version = "0.11", optional = true }
 regex = { version = "1.5", optional = true }
 tide = { version = "0.16", default-features = false }
 
