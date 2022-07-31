@@ -1,7 +1,13 @@
 [package]
 name = "generate-database"
-version = "0.1.0"
+version = "0.0.0"
 edition = "2021"
+authors = ["Jeremiah Senkpiel <fishrock123@rocketmail.com>"]
+license = "BlueOak-1.0.0"
+description = "MIME type database code generation for tide-compress"
+readme = "../README.md"
+repository = "https://github.com/Fishrock123/tide-compress"
+publish = false
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
