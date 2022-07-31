@@ -37,7 +37,7 @@ jobs:
       uses: actions-rs/cargo@v1
       with:
         command: check
-        args: --benches --bins --examples --tests'
+        args: --all-targets
 
     - name: tests
       uses: actions-rs/cargo@v1
@@ -58,7 +58,7 @@ jobs:
         components: rustfmt, clippy, rust-docs
 
     - name: clippy
-      run: cargo clippy --benches --bins --examples --tests -- -D warnings
+      run: cargo clippy --all-targets -- -D warnings
 
     - name: fmt
       run: cargo fmt --all -- --check
