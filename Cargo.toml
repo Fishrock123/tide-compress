@@ -1,3 +1,8 @@
+[workspace]
+members = [
+  "generate-database"
+]
+
 [package]
 name = "tide-compress"
 version = "0.10.5"
@@ -22,10 +27,8 @@ brotli = ["async-compression/brotli"]
 gzip = ["async-compression/gzip"]
 deflate = ["async-compression/deflate"]
 
-db-check = ["regex-check", "phf", "_build_deps"]
+db-check = ["regex-check", "phf"]
 regex-check = ["regex"]
-
-_build_deps = ["async-std", "phf_codegen", "serde", "serde_json", "surf"]
 
 [dependencies]
 async-compression = { version = "0.3", features = ["futures-bufread"] }
@@ -43,14 +46,6 @@ async-std = { version = "1.11", features = ["attributes"] }
 version = "1"
 default-features = false # Disable features which are enabled by default
 features = ["user-hooks"]
-
-[build-dependencies]
-async-std = { version = "1.11", features = ["attributes"], optional = true }
-cfg-if = "1"
-phf_codegen = { version = "0.10", optional = true }
-serde = { version = "1", features = ["derive"], optional = true }
-serde_json = { version = "1", optional = true }
-surf = { version = "2.3.2", default-features = false, features = ["h1-client-rustls"], optional = true }
 
 [package.metadata.docs.rs]
 # Prevent docs.rs from trying to pull down the database...

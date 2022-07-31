@@ -95,6 +95,9 @@
 //! [Identity]: https://www.rfc-editor.org/rfc/rfc9110.html#name-accept-encoding
 //! [Tide]: https://github.com/http-rs/tide
 
+#[cfg(feature = "db-check")]
+mod codegen_database;
+
 mod middleware;
 
 pub use middleware::{CompressMiddleware, CompressMiddlewareBuilder};
