@@ -181,7 +181,6 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
             }
         }
 
-        let body = res.take_body();
         let encoding = accepts.negotiate(&[
             #[cfg(feature = "brotli")]
             Encoding::Brotli,
@@ -189,15 +188,16 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
             Encoding::Gzip,
             #[cfg(feature = "deflate")]
             Encoding::Deflate,
-            Encoding::Identity,
+            Encoding::Identity, // Prioritize compression when acceptable.
         ])?;
 
+        // Short-circuit case without modifying body.
         if encoding == Encoding::Identity {
             res.remove_header(headers::CONTENT_ENCODING);
-            res.set_body(body);
             return Ok(res);
         }
 
+        let body = res.take_body();
         // Get a new Body backed by an appropriate encoder, if one is available.
         res.set_body(get_encoder(body, &encoding));
         encoding.apply(&mut res);
