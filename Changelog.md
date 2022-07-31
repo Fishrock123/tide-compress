@@ -7,6 +7,12 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.10.5] - 2022-07-31
+
+- Fix: conform to RFC 9110 for `Accept-Encoding: Identity`.
+- Docs: updates.
+- Internal: ci & lint updates.
+
 ## [0.10.4] - 2022-07-04
 
 - Build: avoid including build deps if `"db-check"` feature is not enabled.
