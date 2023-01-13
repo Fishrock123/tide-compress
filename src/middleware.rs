@@ -5,6 +5,8 @@ use tide::http::{headers, Body, Method};
 use tide::{Middleware, Next, Request, Response};
 
 #[cfg(any(feature = "brotli", feature = "deflate", feature = "gzip"))]
+use async_compression::Level;
+#[cfg(any(feature = "brotli", feature = "deflate", feature = "gzip"))]
 use futures_lite::io::BufReader;
 
 #[cfg(feature = "brotli")]
@@ -46,6 +48,10 @@ pub struct CompressMiddleware {
     content_type_check: Option<Regex>,
     #[cfg(feature = "regex-check")]
     extract_type_regex: Regex,
+    #[cfg(feature = "brotli")]
+    brotli_quality: Level,
+    #[cfg(any(feature = "gzip", feature = "deflate"))]
+    deflate_quality: Level,
 }
 
 impl Default for CompressMiddleware {
@@ -197,7 +203,14 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
 
         let body = res.take_body();
         // Get a new Body backed by an appropriate encoder, if one is available.
-        res.set_body(get_encoder(body, &encoding));
+        res.set_body(get_encoder(
+            body,
+            &encoding,
+            #[cfg(feature = "brotli")]
+            self.brotli_quality,
+            #[cfg(any(feature = "gzip", feature = "deflate"))]
+            self.deflate_quality,
+        ));
         encoding.apply(&mut res);
 
         // End size no longer matches body size, so any existing Content-Length is useless.
@@ -212,25 +225,39 @@ impl<State: Clone + Send + Sync + 'static> Middleware<State> for CompressMiddlew
     not(any(feature = "brotli", feature = "deflate", feature = "gzip")),
     allow(unused_variables)
 )]
-fn get_encoder(body: Body, encoding: &ContentEncoding) -> Body {
+fn get_encoder(
+    body: Body,
+    encoding: &ContentEncoding,
+    #[cfg(feature = "brotli")] brotli_quality: Level,
+    #[cfg(any(feature = "gzip", feature = "deflate"))] deflate_quality: Level,
+) -> Body {
     #[cfg(feature = "brotli")]
     {
         if *encoding == Encoding::Brotli {
-            return Body::from_reader(BufReader::new(BrotliEncoder::new(body)), None);
+            return Body::from_reader(
+                BufReader::new(BrotliEncoder::with_quality(body, brotli_quality)),
+                None,
+            );
         }
     }
 
     #[cfg(feature = "gzip")]
     {
         if *encoding == Encoding::Gzip {
-            return Body::from_reader(BufReader::new(GzipEncoder::new(body)), None);
+            return Body::from_reader(
+                BufReader::new(GzipEncoder::with_quality(body, deflate_quality)),
+                None,
+            );
         }
     }
 
     #[cfg(feature = "deflate")]
     {
         if *encoding == Encoding::Deflate {
-            return Body::from_reader(BufReader::new(DeflateEncoder::new(body)), None);
+            return Body::from_reader(
+                BufReader::new(DeflateEncoder::with_quality(body, deflate_quality)),
+                None,
+            );
         }
     }
 
@@ -243,6 +270,8 @@ fn get_encoder(body: Body, encoding: &ContentEncoding) -> Body {
 /// Uses the defaults:
 /// - Minimum body size threshold (1024 bytes).
 /// - Check for `Content-Type` header match `^text/|\+(?:json|text|xml)$` (case insensitive).
+/// - Brotli quality Fastest (level 1).
+/// - Deflate / Gzip quality Default.
 ///
 /// ## Example
 /// ```rust
@@ -260,9 +289,17 @@ fn get_encoder(body: Body, encoding: &ContentEncoding) -> Body {
 /// # })
 /// ```
 pub struct CompressMiddlewareBuilder {
+    /// Minimum body size threshold in bytes. Default `1024`.
     pub threshold: usize,
     #[cfg(feature = "regex-check")]
+    /// Check for `Content-Type` header match. Default: `^text/|\+(?:json|text|xml)$` (case insensitive).
     pub content_type_check: Option<Regex>,
+    #[cfg(feature = "brotli")]
+    /// Brotli compression quality. Default: `Level::Fastest` (level `1`).
+    pub brotli_quality: Level,
+    #[cfg(any(feature = "gzip", feature = "deflate"))]
+    /// Deflate / Gzip compression quality. Uses `Level::Default`.
+    pub deflate_quality: Level,
 }
 
 impl Default for CompressMiddlewareBuilder {
@@ -276,6 +313,10 @@ impl Default for CompressMiddlewareBuilder {
                     .build()
                     .expect("Constant regular expression defined in Tide-Compress's source code"),
             ),
+            #[cfg(feature = "brotli")]
+            brotli_quality: Level::Fastest,
+            #[cfg(any(feature = "gzip", feature = "deflate"))]
+            deflate_quality: Level::Default,
         }
     }
 }
@@ -300,6 +341,20 @@ impl CompressMiddlewareBuilder {
         self
     }
 
+    #[cfg(feature = "brotli")]
+    /// Sets the compression level for Brotli.
+    pub fn brotli_quality(mut self, quality: Level) -> Self {
+        self.brotli_quality = quality;
+        self
+    }
+
+    #[cfg(any(feature = "gzip", feature = "deflate"))]
+    /// Sets the compression level for both Deflate and Gzip.
+    pub fn deflate_quality(mut self, quality: Level) -> Self {
+        self.deflate_quality = quality;
+        self
+    }
+
     /// Construct a middleware instance from this builder.
     pub fn build(self) -> CompressMiddleware {
         self.into()
@@ -315,6 +370,10 @@ impl From<CompressMiddlewareBuilder> for CompressMiddleware {
             #[cfg(feature = "regex-check")]
             extract_type_regex: Regex::new(EXTRACT_TYPE_PATTERN)
                 .expect("Constant regular expression defined in Tide-Compress's source code"),
+            #[cfg(feature = "brotli")]
+            brotli_quality: builder.brotli_quality,
+            #[cfg(any(feature = "gzip", feature = "deflate"))]
+            deflate_quality: builder.deflate_quality,
         }
     }
 }
