@@ -7,6 +7,10 @@ and this project adheres to [Semantic Versioning](https://semver.org/spec/v2.0.0
 
 ## [Unreleased]
 
+## [0.11.0] - 2023-01-12
+
+- Feat: add `brotli_quality` and `defalte_quality` to `Config`.
+
 ## [0.10.6] - 2022-07-31
 
 - Refactor: no longer does database codegen on build, codegen is in-repo.
